@@ -145,7 +145,6 @@ class File(object):
         return self.read()
 
     def write(self):
-        print "writing the data"
         return self._writer(self._fullpath, self._output_data)
 
     def isOutput(self):
