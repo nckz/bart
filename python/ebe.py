@@ -145,6 +145,7 @@ class File(object):
         return self.read()
 
     def write(self):
+        print "writing the data"
         return self._writer(self._fullpath, self._output_data)
 
     def isOutput(self):
@@ -201,7 +202,7 @@ class Command(object):
 
         # write all data to input files
         for x in self._cmd:
-            if hasattr(x, '_Extern_File_Handle'):
+            if hasattr(x, '_Extern_File_Handle_Type'):
                 if x.isInput():
                     x.write()
 
