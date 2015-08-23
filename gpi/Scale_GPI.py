@@ -39,11 +39,11 @@ class ExternalNode(gpi.NodeAPI):
         args = [base_path+'/scale']
         args += [str(f)]
 
-        # pass data to external command
+        # setup file for passing data to external command
         inp = IFile(cfl.writecfl, indata, asuffix=['.cfl','.hdr'])
         args += [inp]
 
-        # get data from external command
+        # setup file for getting data from external command
         out = OFile(cfl.readcfl, asuffix=['.cfl','.hdr'])
         args += [out]
 

@@ -51,7 +51,7 @@ class ExternalNode(gpi.NodeAPI):
         if g:
             args += ['-G']
 
-        # set output filename
+        # setup file for getting data from external command
         out = OFile(cfl.readcfl, asuffix=['.cfl','.hdr'])
         args += [out]
 
