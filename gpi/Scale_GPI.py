@@ -52,5 +52,6 @@ class ExternalNode(gpi.NodeAPI):
 
         self.setData('out', out.data())
         out.close()
+        inp.close()
 
         return 0
