@@ -39,7 +39,7 @@ class stub(object):
     def __init__(self):
         pass
     def warn(self, msg):
-        print msg
+        print(msg)
 log = stub()
 
 

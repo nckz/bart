@@ -48,7 +48,7 @@ class ExternalNode(gpi.NodeAPI):
         args += [out]
 
         # run commandline
-        print Command(args)
+        print((Command(args)))
 
         self.setData('out', out.data())
         out.close()

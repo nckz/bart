@@ -8,7 +8,7 @@
 # 2015 Frank Ong <frankong@berkeley.edu>
 
 
-from __future__ import division
+
 import operator
 import numpy as np
 import sys
@@ -19,6 +19,7 @@ from functools import partial
 import time
 import threading
 import os.path
+from functools import reduce
 
 class DiscreteSlider(Slider):
     """A matplotlib slider widget with discrete steps."""
@@ -40,7 +41,7 @@ class DiscreteSlider(Slider):
             self.previous_val = discrete_val
             if not self.eventson: 
                 return
-            for cid, func in self.observers.iteritems():
+            for cid, func in list(self.observers.items()):
                 func(discrete_val)
 
 
@@ -90,7 +91,7 @@ class BartView(object):
 
         # Create Radio Buttons for X Y dimensions
         dims = self.im_unsqueeze_shape[ self.order ].astype(str)
-        for i in xrange(0,len(dims)):
+        for i in range(0,len(dims)):
             dims[i] = "Dim " + dims[i]
         oboxx_ax = plt.axes( [0, 1 - 0.03, 0.1, 0.03], axisbg = "gainsboro" )
         oboxx_ax.set_xticks([]);
@@ -352,8 +353,8 @@ if __name__ == "__main__":
 
     # Error if more than 1 argument
     if (len(sys.argv) != 2):
-        print "BartView: multidimensional image viewer for cfl"
-        print "Usage: bview cflname"
+        print("BartView: multidimensional image viewer for cfl")
+        print("Usage: bview cflname")
         exit()
 
     BartView( sys.argv[1] )
