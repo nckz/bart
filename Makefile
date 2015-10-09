@@ -1,13 +1,17 @@
-# Copyright 2013. The Regents of the University of California.
-# All rights reserved. Use of this source code is governed by 
+# Copyright 2013-2015. The Regents of the University of California.
+# Copyright 2015. Martin Uecker.
+# All rights reserved. Use of this source code is governed by
 # a BSD-style license which can be found in the LICENSE file.
 
 
 # silent make
 #MAKEFLAGS += --silent
 
+# clear out all implicit rules and variables
+MAKEFLAGS += -R
+
 # use for parallel make
-#AR=./ar_lock.sh
+AR=./ar_lock.sh
 
 CUDA?=0
 ACML?=0
@@ -48,6 +52,7 @@ export TOOLBOX_PATH=$(root)
 DEPFILE = $(*D)/.$(*F).d
 DEPFLAG = -MMD -MF $(DEPFILE)
 ALLDEPS = $(shell find $(srcdir) -name ".*.d")
+#ALLDEPS = $(shell find $(root) -name ".*.d")
 
 
 # Compilation flags
@@ -99,8 +104,8 @@ ismrm.top ?= /usr/local/ismrmrd/
 
 # Main build targets
 
-TBASE=show slice crop resize join transpose zeros ones flip circshift extract repmat bitmask reshape
-TFLP=scale conj fmac saxpy sdot spow cpyphs creal normalize cdf97 relnorm pattern
+TBASE=show slice crop resize join transpose zeros ones flip circshift extract repmat bitmask reshape version
+TFLP=scale conj fmac saxpy sdot spow cpyphs creal normalize cdf97 relnorm pattern nrmse
 TNUM=fft fftmod fftshift noise bench threshold conv rss
 TRECO=pics pocsense rsense bpsense itsense nlinv nufft rof sake wave
 TCALIB=ecalib ecaltwo caldir walsh cc calmat svd
@@ -276,7 +281,7 @@ endif
 
 # Modules
 
-#.LIBPATTERNS := lib/lib%.a
+.LIBPATTERNS := lib%.a
 
 
 vpath %.a lib
@@ -284,6 +289,10 @@ vpath %.a lib
 DIRS = $(root)/rules/*.mk
 
 include $(DIRS)
+
+# sort BTARGETS after everything is included
+BTARGETS:=$(sort $(BTARGETS))
+
 
 
 .gitignore: .gitignore.main Makefile*
@@ -319,6 +328,19 @@ $(BTARGETS): bart
 	rm -f $@ && $(MYLINK) bart $@
 
 
+# implicit rules
+
+%.o: %.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+
+(%): %
+	$(AR) r $@ $%
+	rm $%
+
+# we add the rm because intermediate files are not deleted
+# automatically for some reason
+
+
 .SECONDEXPANSION:
 $(XTARGETS): % : $(srcdir)/%.c $$(MODULES_%) $(MODULES)
 	$(CC) $(LDFLAGS) $(CPPFLAGS) $(CFLAGS) -Dmain_$@=main -o $@ $+ $(FFTW_L) $(CUDA_L) $(BLAS_L) $(GSL_L) $(PNG_L) -lm
@@ -332,6 +354,7 @@ clean:
 allclean: clean
 	rm -f $(libdir)/*.a ismrmrd $(ALLDEPS)
 	rm -f $(patsubst %, %, $(TARGETS))
+	rm -f $(srcdir)/misc/version.inc
 
 
 

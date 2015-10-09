@@ -35,7 +35,8 @@ void error(const char* fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	debug_printf(DP_ERROR, "Error: ");
+	if (!debug_logging)
+		debug_printf(DP_ERROR, "Error: ");
 	debug_vprintf(DP_ERROR, fmt, ap);
 	va_end(ap);
 	abort();
@@ -140,21 +141,24 @@ void quicksort(unsigned int N, unsigned int ord[N], const void* data, quicksort_
 
 void mini_cmdline(int argc, char* argv[], int expected_args, const char* usage_str, const char* help_str)
 {
-	mini_cmdline_bool(argc, argv, expected_args, usage_str, help_str);
+	mini_cmdline_bool(argc, argv, '\0', expected_args, usage_str, help_str);
 }
 
 
-bool mini_cmdline_bool(int argc, char* argv[], int expected_args, const char* usage_str, const char* help_str)
+bool mini_cmdline_bool(int argc, char* argv[], char flag_char, int expected_args, const char* usage_str, const char* help_str)
 {
-	bool b = false;
+	bool flag = false;
+	char opts[3] = { 'h', flag_char, '\0' };
+
 	int c;
-	while (-1 != (c = getopt(argc, argv, "hb"))) {
+	while (-1 != (c = getopt(argc, argv, opts))) {
 
+		if (c == flag_char) {
+
+			flag = true;
+
+		}  else
 		switch (c) {
-
-		case 'b':
-			b = true;
-			break;
 
 		case 'h':
 			printf("Usage: %s %s\n\n%s", argv[0], usage_str, help_str);
@@ -179,7 +183,7 @@ bool mini_cmdline_bool(int argc, char* argv[], int expected_args, const char* us
 
 	argv[i] = NULL;
 
-	return b;
+	return flag;
 }
 
 

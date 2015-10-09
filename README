@@ -4,8 +4,12 @@ See LICENSE file for licensing information.
 -------------------------------------------------------------------------------
 
 
-The tools in this software implement various reconstruction algorithms. 
-Please cite the corresponding articles when using these tools for research.
+The tools in this software implement various reconstruction algorithms for
+Magnetic Resonance Imaging. The software is intended for research use only
+and NOT FOR DIAGNOSTIC USE. It comes without any warranty (see LICENSE for
+details).
+
+Please cite the corresponding articles when using these tools.
 Some references can be found at the end of this file. The source code might
 provide more detailed references, e.g. for specific iterative algorithms.
 
@@ -313,7 +317,7 @@ More information about each command can be found in 'doc/commands.txt'.
 
 Uecker M, Ong F, Tamir JI, Bahri D, Virtue P, Cheng JY, Zhang T, Lustig m,
 Berkeley Advanced Reconstruction Toolbox, Annual Meeting ISMRM, Toronto 2015
-In: Proc Intl Soc Mag Reson Med 23:2486 (accepted)
+In: Proc Intl Soc Mag Reson Med 23:2486
 
 
 Uecker M, Virtue P, Ong F, Murphy MJ, Alley MT, Vasanawala SS, Lustig M,
