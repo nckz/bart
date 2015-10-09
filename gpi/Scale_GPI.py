@@ -17,7 +17,9 @@ base_path = bart.__path__[0] # library base for executables
 import bart.python.cfl as cfl
 
 class ExternalNode(gpi.NodeAPI):
-    '''About text goes here...
+    '''Usage: scale factor <input> <output>
+
+    Scale array by {factor}. The scale factor can be a complex number.
     '''
 
     def initUI(self):
