@@ -22,33 +22,36 @@
 #    MAKES NO WARRANTY AND HAS NOR LIABILITY ARISING FROM ANY USE OF THE
 #    SOFTWARE IN ANY HIGH RISK OR STRICT LIABILITY ACTIVITIES.
 
-# Nick Zwart
-# 2015Aug22
-# from gpi future (external binary encapsulation):
+# External Binary Encapsulation
 #   This is a set of convenience functions for wrapping external binaries in
 #   python.
 
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
-import tempfile
+import hashlib
 import subprocess
+import numpy as np
 
 # gpi
+#from .defines import GPI_SHDM_PATH
+#from .logger import manager
+import tempfile
 GPI_SHDM_PATH = tempfile.gettempdir()
-class stub(object):
-    def __init__(self):
-        pass
+
+# start logger for this module
+#log = manager.getLogger(__name__)
+class manager(object):
     def warn(self, msg):
-        print msg
-log = stub()
+        print(msg)
+log = manager()
 
-
-class File(object):
-    '''Hold a filename as a reference to an actual file.  If THIS object
-    looses its reference then make sure the associated file is also deleted.
-    By default this file will be created in the GPI tmp directory and will be
-    named after the node it is called in. The supplied read/writer functions
-    can be used to write and retrieve the file information.
+class FilePath(object):
+    '''Generate a tempfile-name and path based on THIS object's id.  If THIS
+    object looses its reference then make sure the associated file is also
+    deleted. The supplied read/writer functions can be used to write and
+    retrieve the file information. If a tempfile-path and name is all that is
+    needed, then this object can be instantiated without any arguments.
 
     path: /tmp (default GPI tmp dir)
     filename: additional to the nodeid
@@ -64,16 +67,22 @@ class File(object):
     '''
     _Extern_File_Handle_Type = True
 
-    def __init__(self, wfunc=None, wdata=None, path=None, filename=None, suffix=None, nodeid=None, rfunc=None, asuffix=[]):
+    def __init__(self, wfunc=None, wdata=None, path=None, filename=None,
+                 suffix=None, nodeid=None, rfunc=None, asuffix=[]):
 
         self._reader = rfunc
         self._writer = wfunc
         self._output_data = wdata # data to be written
-        self._additional_suffix = asuffix
+
+        self._suffix = ''
+        if suffix is not None:
+            self._suffix = suffix
+
+        self._additional_suffix = set(asuffix + [self._suffix, '']) - set([None])
 
         ## build the filepath one step at a time
 
-        self._fullpath = ''
+        self._basename_path = ''
         self._filename = ''
         if nodeid:
             self._filename += str(nodeid)
@@ -83,29 +92,29 @@ class File(object):
                 self._filename += '_'
             self._filename += str(filename)
 
-        if suffix:
-            self._filename += str(suffix)
-
         # just use THIS object id if nothing is specified
         if self._filename == '':
             self._filename = str(id(self))
 
         if path:
-            self._fullpath = os.path.join(str(path), self._filename)
+            self._basename_path = os.path.join(str(path), self._filename)
         else:
-            self._fullpath = os.path.join(GPI_SHDM_PATH, self._filename)
+            self._basename_path = os.path.join(GPI_SHDM_PATH, self._filename)
 
-        if os.path.exists(self._fullpath):
-            log.warn('The path: \'' + self._fullpath + '\' already exists, continuing...')
+        if self._suffix:
+            self._filename += self._suffix
+
+        if self.fileExists():
+            log.warn('The path: \'' + self._basename_path + '\' already exists, continuing...')
 
     def __str__(self):
-        return self._fullpath
+        return self._basename_path
 
     def __del__(self):
         # this may not delete in a timely fashion so direct use of clear() is
         # encouraged.
         if self.fileExists():
-            log.warn('The \'File\' object for path: \''+self._fullpath+'\' was not closed before collection.')
+            log.warn('The \'FilePath\' object for path: \''+self._basename_path+'\' was not closed before collection.')
             self.clear()
 
     def additionalSuffix(self, suf=[]):
@@ -115,17 +124,13 @@ class File(object):
         self._additional_suffix = suf
 
     def clear(self):
-        if os.path.isfile(self._fullpath):
-            os.remove(self._fullpath)
         for s in self._additional_suffix:
-            if os.path.isfile(self._fullpath + s):
-                os.remove(self._fullpath + s)
+            if os.path.isfile(self._basename_path + s):
+                os.remove(self._basename_path + s)
 
     def fileExists(self):
-        if os.path.isfile(self._fullpath):
-            return True
         for s in self._additional_suffix:
-            if os.path.isfile(self._fullpath + s):
+            if os.path.isfile(self._basename_path + s):
                 return True
         return False
 
@@ -138,14 +143,20 @@ class File(object):
     def setWriter(self, func):
         self._writer = func
 
-    def read(self):
-        return self._reader(self._fullpath)
+    def read(self, suffix=None):
+        if suffix is None:
+            suffix = self._suffix
+        return self._reader(self._basename_path + suffix)
 
-    def data(self):
-        return self.read()
+    def data(self, suffix=None):
+        if suffix is None:
+            suffix = self._suffix
+        return self.read(suffix)
 
-    def write(self):
-        return self._writer(self._fullpath, self._output_data)
+    def write(self, suffix=None):
+        if suffix is None:
+            suffix = self._suffix
+        return self._writer(self._basename_path + suffix, self._output_data)
 
     def isOutput(self):
         # this file is the result of running the command
@@ -159,13 +170,13 @@ class File(object):
             return True
         return False
 
-class IFile(File):
+class IFilePath(FilePath):
     def __init__(self, wfunc, wdata, suffix=None, asuffix=[]):
-        super(IFile, self).__init__(wfunc=wfunc, wdata=wdata, suffix=suffix, asuffix=asuffix)
+        super(IFilePath, self).__init__(wfunc=wfunc, wdata=wdata, suffix=suffix, asuffix=asuffix)
 
-class OFile(File):
+class OFilePath(FilePath):
     def __init__(self, rfunc, suffix=None, asuffix=[]):
-        super(OFile, self).__init__(rfunc=rfunc, suffix=suffix, asuffix=asuffix)
+        super(OFilePath, self).__init__(rfunc=rfunc, suffix=suffix, asuffix=asuffix)
 
 class Command(object):
     '''This object simplifies the situation where an external program generates
@@ -173,31 +184,64 @@ class Command(object):
     communicated as commandline arguments, and also need to be read and written
     from GPI.
 
-    in1 = File('.cfl', writer, data)
-    out1 = File('.cfl', reader)
+    in1 = FilePath('.cfl', writer, data)
+    out1 = FilePath('.cfl', reader)
 
-    Command(['fft', in1, '-o', out1, '-d1']).run()
+    # run command immediatly
+    Command('fft', in1, '-o', out1, '-d1')
+
+    # setup a command list
+    c = Command()
+    c.arg('fft')
+    c.arg(in1, '-o', out1)
+    c.arg('-d1')
+    c.run()
 
     data = out1.read()
     '''
 
-    def __init__(self, cmd=[], warn=True):
-        self._cmd = cmd
-        self._cmd_str = ' '.join([str(x) for x in cmd])
-        self._warn = warn
+    def __init__(self, *args, **kwargs):
 
-        # run the command straight away 
-        self._retcode = self.run()
+        self._warn = True
+        if 'warn' in kwargs:
+            self._warn = kwargs['warn']
+
+        self._checkForInvalidArgs(args)
+        self._cmd = args
+
+        self._retcode = None
+        if len(self._cmd):
+            # run the command straight away if there is one
+            self._retcode = self.run()
+
+    def _checkForInvalidArgs(self, args):
+        for a in args:
+            print('type of a: ', type(a))
+            if type(a) not in [OFilePath, IFilePath, FilePath, str]:
+                types = [type(a) for a in args]
+                raise ValueError('Command:Args must be of type str, OFilePath, IFilePath or FilePath. '+str(types))
+
+    def arg(self, *args):
+        self._checkForInvalidArgs(args)
+        self._cmd += args
+
+    def setWarning(self, val):
+        self._warn = val
 
     def returnCode(self):
         return self._retcode
 
     def __str__(self):
-        return self._cmd_str
-       
-    def run(self):
+        # this is the actual command that is passed to subprocess
+        return ' '.join([str(x) for x in self._cmd])
 
-        retcode = 1 # fail
+    def getArgList(self):
+        return self._cmd
+
+    def getArgString(self):
+        return str(self)
+
+    def run(self):
 
         # write all data to input files
         for x in self._cmd:
@@ -206,11 +250,5 @@ class Command(object):
                     x.write()
 
         # run the command
-        if self._cmd_str:
-            retcode = subprocess.call(self._cmd_str, shell=True)
-
-        if self._warn:
-            if retcode:
-                log.warn("Command(): the commandline argument failed to execute:\n\t" + str(self._cmd_str))
-
-        return retcode
+        self._retcode = subprocess.check_call(str(self), shell=True)
+        return self._retcode

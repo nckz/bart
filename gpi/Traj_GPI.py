@@ -4,12 +4,13 @@
 #
 # For node API examples (i.e. widgets and ports) look at the
 # core.interfaces.Template node.
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
 
 # gpi, future
 import gpi
-from bart.python.ebe import IFile, OFile, Command
+from bart.gpi.ebe import IFilePath, OFilePath, Command
 
 # bart
 import bart
@@ -70,11 +71,11 @@ class ExternalNode(gpi.NodeAPI):
             args += ['-D']
 
         # setup file for getting data from external command
-        out = OFile(cfl.readcfl, asuffix=['.cfl','.hdr'])
+        out = OFilePath(cfl.readcfl, asuffix=['.cfl','.hdr'])
         args += [out]
 
         # run commandline
-        print Command(args)
+        print(Command(*args))
 
         self.setData('out1', out.data())
         out.close()
