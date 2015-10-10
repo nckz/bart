@@ -4,12 +4,13 @@
 #
 # For node API examples (i.e. widgets and ports) look at the
 # core.interfaces.Template node.
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
 
-# gpi, future
+# gpi
 import gpi
-from bart.python.ebe import IFile, OFile, Command
+from bart.gpi.borg import IFilePath, OFilePath, Command
 
 # bart
 import bart
@@ -77,7 +78,7 @@ class ExternalNode(gpi.NodeAPI):
         args += [out]
 
         # run commandline
-        print Command(args)
+        print(Command(*args))
 
         self.setData('proj_kspace', out.data())
         out.close()
