@@ -10,7 +10,7 @@ import os
 
 # gpi, future
 import gpi
-from bart.gpi.ebe import IFilePath, OFilePath, Command
+from bart.gpi.borg import IFilePath, OFilePath, Command
 
 # bart
 import bart
