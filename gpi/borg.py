@@ -216,7 +216,6 @@ class Command(object):
 
     def _checkForInvalidArgs(self, args):
         for a in args:
-            print('type of a: ', type(a))
             if type(a) not in [OFilePath, IFilePath, FilePath, str]:
                 types = [type(a) for a in args]
                 raise ValueError('Command:Args must be of type str, OFilePath, IFilePath or FilePath. '+str(types))
