@@ -90,5 +90,6 @@ class ExternalNode(gpi.NodeAPI):
         out1.close()
         self.setData('ev_maps', out2.data())
         out2.close()
+        in1.close()
 
         return 0
