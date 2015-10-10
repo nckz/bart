@@ -4,12 +4,13 @@
 #
 # For node API examples (i.e. widgets and ports) look at the
 # core.interfaces.Template node.
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import os
 
 # gpi, future
 import gpi
-from bart.python.ebe import IFile, OFile, Command
+from bart.gpi.borg import IFilePath, OFilePath, Command
 
 # bart
 import bart
@@ -73,17 +74,17 @@ class ExternalNode(gpi.NodeAPI):
             args += ['-1']
 
         # setup file for passing data to external command
-        in1 = IFile(cfl.writecfl, kspace, asuffix=['.cfl','.hdr'])
+        in1 = IFilePath(cfl.writecfl, kspace, asuffix=['.cfl','.hdr'])
         args += [in1]
 
         # setup file for getting data from external command
-        out1 = OFile(cfl.readcfl, asuffix=['.cfl','.hdr'])
+        out1 = OFilePath(cfl.readcfl, asuffix=['.cfl','.hdr'])
         args += [out1]
-        out2 = OFile(cfl.readcfl, asuffix=['.cfl','.hdr'])
+        out2 = OFilePath(cfl.readcfl, asuffix=['.cfl','.hdr'])
         args += [out2]
 
         # run commandline
-        print Command(args)
+        print(Command(*args))
 
         self.setData('sensitivities', out1.data())
         out1.close()
