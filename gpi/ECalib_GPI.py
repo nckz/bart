@@ -19,10 +19,10 @@ import bart.python.cfl as cfl
 
 class ExternalNode(gpi.NodeAPI):
     '''Usage: ./ecalib [-n num. s.values] [-t eigenv. threshold] [-c crop_value] [-k kernel_size] [-r cal_size] [-m maps] <kspace> <sensitivites> [<ev-maps>]
-    
+
     Estimate coil sensitivities using ESPIRiT calibration.
     Optionally outputs the eigenvalue maps.
-    
+
     -t threshold    This determined the size of the null-space.
     -c crop_value   Crop the sensitivities if the eigenvalue is smaller than {crop_value}.
     -k ksize    kernel size
@@ -34,10 +34,10 @@ class ExternalNode(gpi.NodeAPI):
 
     def initUI(self):
         # Widgets
-        self.addWidget('DoubleSpinBox', 'threshold', min=.01, val=1.0)
-        self.addWidget('DoubleSpinBox', 'crop value', min=.01, val=1.0)
-        self.addWidget('SpinBox', 'kernel size', min=1, val=5)
-        self.addWidget('SpinBox', 'calibration size', min=1, val=20)
+        self.addWidget('DoubleSpinBox', 'threshold', min=0, val=0.001, decimals=5)
+        self.addWidget('DoubleSpinBox', 'crop value', min=0, val=0.8)
+        self.addWidget('SpinBox', 'kernel size', min=1, val=6)
+        self.addWidget('SpinBox', 'calibration size', min=1, val=24)
         self.addWidget('SpinBox', 'number maps', min=1, val=2)
         self.addWidget('PushButton', 'intensity correction', toggle=True)
         self.addWidget('PushButton', '1st part only', toggle=True)
@@ -46,6 +46,7 @@ class ExternalNode(gpi.NodeAPI):
         self.addInPort('kspace', 'NPYarray', obligation=gpi.REQUIRED)
         self.addOutPort('sensitivities', 'NPYarray')
         self.addOutPort('ev_maps', 'NPYarray')
+        self.addOutPort('imgcov', 'NPYarray')
 
         return 0
 
@@ -77,19 +78,27 @@ class ExternalNode(gpi.NodeAPI):
         in1 = IFilePath(cfl.writecfl, kspace, asuffix=['.cfl','.hdr'])
         args += [in1]
 
-        # setup file for getting data from external command
+
         out1 = OFilePath(cfl.readcfl, asuffix=['.cfl','.hdr'])
         args += [out1]
-        out2 = OFilePath(cfl.readcfl, asuffix=['.cfl','.hdr'])
-        args += [out2]
+
+        if not first:
+            out2 = OFilePath(cfl.readcfl, asuffix=['.cfl','.hdr'])
+            args += [out2]
 
         # run commandline
         print(Command(*args))
 
-        self.setData('sensitivities', out1.data())
+        if first:
+            self.setData('imgcov', out1.data())
+        else:
+            self.setData('sensitivities', out1.data())
         out1.close()
-        self.setData('ev_maps', out2.data())
-        out2.close()
+
+        if not first:
+            self.setData('ev_maps', out2.data())
+            out2.close()
+
         in1.close()
 
         return 0
