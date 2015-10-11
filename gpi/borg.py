@@ -22,7 +22,7 @@
 #    MAKES NO WARRANTY AND HAS NOR LIABILITY ARISING FROM ANY USE OF THE
 #    SOFTWARE IN ANY HIGH RISK OR STRICT LIABILITY ACTIVITIES.
 
-# Borg Object Regeneration for GPI
+# Borg Oriented Rejiggering for GPI
 #   This is a set of convenience functions for wrapping external binaries in
 #   python.
 
@@ -114,7 +114,7 @@ class FilePath(object):
         # this may not delete in a timely fashion so direct use of clear() is
         # encouraged.
         if self.fileExists():
-            log.warn('The \'FilePath\' object for path: \''+self._basename_path+'\' was not closed before collection.')
+            #log.warn('The \'FilePath\' object for path: \''+self._basename_path+'\' was not closed before collection.')
             self.clear()
 
     def additionalSuffix(self, suf=[]):
