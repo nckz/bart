@@ -1,9 +1,7 @@
-# GPI (v0.5.0-n1) auto-generated library file.
-#
-# FILE: /Users/nick/gpi/nick/default/GPI/MyNode_GPI.py
-#
-# For node API examples (i.e. widgets and ports) look at the
-# core.interfaces.Template node.
+# Author: Nick Zwart
+# Date: 2015-10-10
+# Copyright (c) 2015 Dignity Health
+
 from __future__ import absolute_import, division, print_function
 
 import os
