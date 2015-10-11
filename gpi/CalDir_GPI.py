@@ -43,7 +43,7 @@ class ExternalNode(gpi.NodeAPI):
 
         # load up arguments list
         args = [base_path+'/caldir']
-        args += ['-r '+str(r)]
+        args += [str(r)]
 
         # setup file for passing data to external command
         in1 = IFilePath(cfl.writecfl, kspace, asuffix=['.cfl','.hdr'])
