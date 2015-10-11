@@ -14,6 +14,7 @@ toolbox for your platform.
     $ less ~/gpi/bart/README
 
 # Examples
-The [example1_espirit_recon_py2_GPI.net](https://github.com/nckz/bart/blob/master/gpi/example1_espirit_recon_py2_GPI.net) is a GPI network that matches the example #1 in the bart example script [here](http://mikgroup.github.io/bart/examples.html).
+The *example1_espirit_recon_py2_GPI.net* (found [here](https://github.com/nckz/bart/blob/master/gpi/))
+is a GPI network that matches the example #1 in the bart example script [here](http://mikgroup.github.io/bart/examples.html).
 The data for this network can be found [here](https://github.com/mikgroup/espirit-matlab-examples/tree/master/data).
 This example makes use of the *und2x2* and *full* datasets.
