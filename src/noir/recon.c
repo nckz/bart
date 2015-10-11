@@ -1,8 +1,8 @@
 /* Copyright 2013. The Regents of the University of California.
- * All rights reserved. Use of this source code is governed by 
+ * All rights reserved. Use of this source code is governed by
  * a BSD-style license which can be found in the LICENSE file.
  *
- * Authors: 
+ * Authors:
  * 2011-2014 Martin Uecker <uecker@eecs.berkeley.edu>
  *
  *
@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include "num/multind.h"
 #include "num/flpmath.h"
@@ -86,7 +87,7 @@ static void thresh(void* ptr, float lambda, float* _dst, const float* _src)
 	struct data* data = (struct data*)ptr;
 	set_thresh_lambda(data->thresh_data, lambda);
 
-	wavelet_thresh_xx(data->wdata, data->thresh_data, (complex float*)_dst, (const complex float*)_src);	
+	wavelet_thresh_xx(data->wdata, data->thresh_data, (complex float*)_dst, (const complex float*)_src);
 }
 #endif
 
@@ -125,7 +126,7 @@ void noir_recon(const long dims[DIMS], unsigned int iter, float th, complex floa
 
 	struct data data = { ndata, NULL, NULL };
 
-	if (-1. == th) {
+	if (-1. != th) {
 
 		struct iter3_irgnm_conf conf = { .iter = iter, .alpha = 1., .redu = 2. };
 		bool repeat = false;
@@ -158,6 +159,7 @@ void noir_recon(const long dims[DIMS], unsigned int iter, float th, complex floa
 	//	irgnm_t(iter, 1., th, 2., (void*)&data, size * 2, data_size * 2, ops, forw, adj, inv, thresh, (float*)img, (float*)imgH, (float*)kspace);
 		assert(0);
 #else
+        printf("you must supply a regularization type (-l1 or -l2)\n");
 		assert(0);
 #endif
 	}
