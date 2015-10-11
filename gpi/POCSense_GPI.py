@@ -28,7 +28,7 @@ class ExternalNode(gpi.NodeAPI):
     def initUI(self):
         # Widgets
         self.addWidget('ExclusivePushButtons', 'Regularization:', buttons=['l1-wavelet', 'l2'], val=0)
-        self.addWidget('DoubleSpinBox', 'regularization parameter', val=0.0)
+        self.addWidget('DoubleSpinBox', 'regularization parameter', val=0.0, decimals=5)
 
         # IO Ports
         self.addInPort('kspace', 'NPYarray', obligation=gpi.REQUIRED)
@@ -63,7 +63,7 @@ class ExternalNode(gpi.NodeAPI):
         args += [out]
 
         # run commandline
-        print(Command(args))
+        print(Command(*args))
 
         self.setData('output', out.data())
         out.close()
