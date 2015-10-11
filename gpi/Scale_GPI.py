@@ -4,7 +4,7 @@
 #
 # For node API examples (i.e. widgets and ports) look at the
 # core.interfaces.Template node.
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function
 
 import os
 

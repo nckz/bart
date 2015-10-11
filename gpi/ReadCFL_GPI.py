@@ -30,7 +30,7 @@
 #         You should have received a copy of the GNU Lesser General Public
 # License along with the GPI core node library. If not, see
 # <http://www.gnu.org/licenses/>.
-
+from __future__ import absolute_import, division, print_function
 
 # Author: Nick Zwart
 # Date: 2012 Nov 02

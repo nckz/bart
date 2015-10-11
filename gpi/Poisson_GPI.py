@@ -2,7 +2,7 @@
 # Date: 2015-10-10 19:37
 # Copyright (C) 2015 Dignity Health
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import, division, print_function
 
 import os
 
