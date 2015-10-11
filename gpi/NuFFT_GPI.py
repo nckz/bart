@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-import os
+import os, re
 
 # gpi
 import gpi
@@ -65,21 +65,12 @@ class ExternalNode(gpi.NodeAPI):
             args += ['-t']
         if lmbda:
             args += ['-l']
-
         if dimensions != '':
-            s = dimensions.split(':')
-            if len(s) != 3:
-                self.log.warn('dimensions requires 3 numbers, you have given '+str(len(s)))
-            else:
-                dims = []
-                for i in s:
-                    try:
-                        dims.append(str(int(i)))
-                    except:
-                        self.log.warn('dimensions must be a list of integers')
-                        break
-                if len(dims) == 3:
-                    args += ['-d '+':'.join(dims)]
+            try:
+                dims = re.search('^([0-9]*):([0-9]*):([0-9]*)$', dimensions).groups()
+                args += ['-d '+':'.join(dims)]
+            except:
+                self.log.warn('\'dimensions\' must be a list of positive integers delimited by colons (i.e. int:int:int), skipping...')
 
         # setup file for passing data to external command
         in_traj = IFilePath(cfl.writecfl, traj, asuffix=['.cfl','.hdr'])
