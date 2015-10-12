@@ -22,7 +22,7 @@
 #    MAKES NO WARRANTY AND HAS NOR LIABILITY ARISING FROM ANY USE OF THE
 #    SOFTWARE IN ANY HIGH RISK OR STRICT LIABILITY ACTIVITIES.
 
-# Borg Oriented Rejiggering for GPI
+# Building Outside Relationships with GPI
 #   This is a set of convenience functions for wrapping external binaries in
 #   python.
 
