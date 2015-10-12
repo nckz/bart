@@ -18,3 +18,5 @@ The *example1_espirit_recon_py2_GPI.net* (found [here](https://github.com/nckz/b
 is a GPI network that matches the *example #1* on the [BART examples page](http://mikgroup.github.io/bart/examples.html).
 The data for this network can be found on the [ESPIRiT data page](https://github.com/mikgroup/espirit-matlab-examples/tree/master/data).
 This example makes use of the *und2x2* and *full* datasets.
+
+![example1_espirit_recon_py2_GPI.net](./example1_espirit_recon_py2_GPI.png)
