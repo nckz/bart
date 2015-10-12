@@ -1,5 +1,6 @@
-# GPI-BART Nodes
-This directory contains node wrappers for the BART toolbox binaries. This patch
+# [GPI](http://gpilab.com)-BART Nodes
+This directory contains node wrappers for the BART toolbox binaries so that
+they can be used natively in GPI ([gpilab.com](http://gpilab.com)). This fork 
 turns the base BART directory into a python library with 'gpi' and 'python'
 sub-libraries.  To install this as a GPI node-library, clone the repository
 from github as 'bart' in your local GPI node directory:
