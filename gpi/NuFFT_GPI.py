@@ -57,14 +57,13 @@ class ExternalNode(gpi.NodeAPI):
         # load up arguments list
         args = [base_path+'/nufft']
 
+        args += ['-l '+str(lmbda)]
         if adjoint:
             args += ['-a']
         if inverse:
             args += ['-i']
         if toeplitz:
             args += ['-t']
-        if lmbda:
-            args += ['-l']
         if dimensions != '':
             try:
                 dims = re.search('^([0-9]*):([0-9]*):([0-9]*)$', dimensions).groups()
