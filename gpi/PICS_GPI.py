@@ -71,11 +71,12 @@ class ExternalNode(gpi.NodeAPI):
             args += ['-l2']
 
         args += ['-r {}'.format(lamb)]
+        args += ['-e -i 100']
 
         # setup file for getting data from external command
-        if trajectory:
-            traj = IFilePath(cfl.writecfl, traj, asuffix=['.cfl','.hdr'])
-            args += ['-t', trajectory]
+        if trajectory is not None:
+            traj = IFilePath(cfl.writecfl, trajectory, asuffix=['.cfl','.hdr'])
+            args += ['-t', traj]
 
         kspace = IFilePath(cfl.writecfl, kspace, asuffix=['.cfl','.hdr'])
         coil_maps = IFilePath(cfl.writecfl, coil_maps, asuffix=['.cfl','.hdr'])
@@ -86,7 +87,7 @@ class ExternalNode(gpi.NodeAPI):
 
         self.setData('output', output.data())
 
-        if trajectory:
+        if trajectory is not None:
             traj.close()
         kspace.close()
         coil_maps.close()
