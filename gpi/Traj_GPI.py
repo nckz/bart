@@ -17,9 +17,9 @@ import bart.python.cfl as cfl
 
 class ExternalNode(gpi.NodeAPI):
     '''Usage: traj [-h] [-r] <output>
-    
+
     Computes k-space trajectories.
-    
+
     -x x    readout samples
     -y y    phase encoding lines
     -a a    acceleration
@@ -33,7 +33,7 @@ class ExternalNode(gpi.NodeAPI):
     def initUI(self):
         # Widgets
         self.addWidget('SpinBox', 'readout samples', min=128)
-        self.addWidget('SpinBox', 'phase encoding lines', min=128)
+        self.addWidget('SpinBox', 'phase encoding lines', min=32)
         self.addWidget('SpinBox', 'acceleration', min=1)
         self.addWidget('SpinBox', 'turns', min=1)
         self.addWidget('PushButton', 'radial', toggle=True)
