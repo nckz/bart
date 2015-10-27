@@ -61,12 +61,9 @@ class ExternalNode(gpi.NodeAPI):
         args += ['-y '+str(y)]
         args += ['-a '+str(a)]
         args += ['-t '+str(t)]
-        if r:
-            args += ['-r']
-        if g:
-            args += ['-G']
-        if d:
-            args += ['-D']
+        args += r*['-r']
+        args += g*['-G']
+        args += d*['-D']
 
         # setup file for getting data from external command
         out = OFilePath(cfl.readcfl, asuffix=['.cfl','.hdr'])
