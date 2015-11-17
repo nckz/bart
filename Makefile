@@ -16,7 +16,7 @@ AR=./ar_lock.sh
 CUDA?=0
 ACML?=0
 GSL?=1
-OMP?=1
+OMP?=0
 SLINK?=0
 DEBUG?=0
 
@@ -66,7 +66,7 @@ CXX = g++
 
 
 ifeq ($(BUILDTYPE), MacOSX)
-	CC = gcc-mp-4.7
+	CC = clang
 endif
 
 
@@ -79,7 +79,8 @@ cuda.top ?= /usr/
 gsl.top ?= /usr/
 
 ifeq ($(BUILDTYPE), MacOSX)
-gsl.top = /opt/local
+# gsl.top = /opt/local
+gsl.top = /usr/local
 endif
 
 # BLAS/LAPACK
@@ -88,7 +89,7 @@ acml.top ?= /usr/local/acml/acml4.4.0/gfortran64_mp/
 
 # fftw
 
-fftw.top ?= /usr/
+fftw.top ?= /Users/ash/miniconda/
 
 # Matlab
 
@@ -183,10 +184,10 @@ ifeq ($(BUILDTYPE), MacOSX)
 CUDA_L := -L$(cuda.top)/lib -lcufft -lcudart -lcublas -lcuda -m64 -lstdc++
 else
 CUDA_L := -L$(cuda.top)/lib64 -lcufft -lcudart -lcublas -lcuda -lstdc++ -Wl,-rpath $(cuda.top)/lib64
-endif 
+endif
 else
 CUDA_H :=
-CUDA_L :=  
+CUDA_L :=
 endif
 
 NVCCFLAGS = -DUSE_CUDA -Xcompiler -fPIC -Xcompiler -fopenmp -O3 -arch=sm_20 -I$(srcdir)/ -m64 -ccbin $(CC)
@@ -216,7 +217,7 @@ ifeq ($(BUILDTYPE), MacOSX)
 GSL_H := -I$(gsl.top)/include
 GSL_L := -L$(gsl.top)/lib -lgsl -lgslcblas
 else
-GSL_H := 
+GSL_H :=
 GSL_L := -lgsl -lgslcblas
 endif
 
@@ -245,13 +246,13 @@ endif
 
 
 # png
-PNG_L := -lpng -lz
+PNG_L := -L/Users/ash/miniconda/lib -lpng -lz
 
 
 # fftw
 
-FFTW_H := -I$(fftw.top)/include/
-FFTW_L := -L$(fftw.top)/lib -lfftw3f_threads -lfftw3f
+FFTW_H := -I/Users/ash/miniconda/include/
+FFTW_L := -L/Users/ash/miniconda/lib -lfftw3f_threads -lfftw3f
 
 
 # Matlab
@@ -263,7 +264,7 @@ MATLAB_L := -Wl,-rpath $(matlab.top)/bin/glnxa64 -L$(matlab.top)/bin/glnxa64 -lm
 
 ISMRM_H := -I$(ismrm.top)/include -I$(ismrm.top)/schema #-DISMRMRD_OLD
 ISMRM_L := /usr/local/ismrmrd/schema/ismrmrd.cxx -Wl,-R$(ismrm.top)/lib -L$(ismrm.top)/lib -lismrmrd -Lhd5 -lxerces-c -lboost_system
-#ISMRM_L := -Wl,-R$(ismrm.top)/lib -L$(ismrm.top)/lib -lismrmrd -lismrmrd_xsd -Lhd5 
+#ISMRM_L := -Wl,-R$(ismrm.top)/lib -L$(ismrm.top)/lib -lismrmrd -lismrmrd_xsd -Lhd5
 
 
 
@@ -331,7 +332,7 @@ $(BTARGETS): bart
 # implicit rules
 
 %.o: %.c
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CPPFLAGS) $(CFLAGS) -I/usr/local/include/ $(FFTW_H) -c -o $@ $<
 
 (%): %
 	$(AR) r $@ $%

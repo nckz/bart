@@ -17,16 +17,16 @@ import bart.python.cfl as cfl
 
 class ExternalNode(gpi.NodeAPI):
     '''Usage: threshold [-j bitmask] lambda <input> <output>
-    
+
     Perform softthresholding with parameter lambda.
-    
+
     -j bitmask  joint thresholding
     '''
 
     def initUI(self):
         # Widgets
         self.addWidget('SpinBox', 'thresholding bitmask', min=0, val=0)
-        self.addWidget('DoubleSpinBox', 'lambda', min=0.01, val=1.)
+        self.addWidget('DoubleSpinBox', 'lambda', min=0, val=0.01, decimals=5)
 
         # IO Ports
         self.addInPort('input', 'NPYarray')
