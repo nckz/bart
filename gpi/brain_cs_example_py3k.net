@@ -1,6 +1,6 @@
 # This file was written with GPI v1.0.0-rc2 using Network v3. Do not edit this line.
 {
- "DATETIME": "Tue Nov 17 16:04:53 2015",
+ "DATETIME": "Tue Nov 17 16:36:13 2015",
  "GPI_VERSION": "1.0.0-rc2",
  "HEADER": "This is a GPI Network File",
  "NETWORK_VERSION": "3",
@@ -15,14 +15,14 @@
   "TOTAL_PHYMEM": 17179869184,
   "TOTAL_PHYMEM_STR": "16.00 GB"
  },
- "TOTAL_PMEM": "41156624",
- "WALLTIME": "1.8021240234375",
+ "TOTAL_PMEM": "36962304",
+ "WALLTIME": "30.065595865249634",
  "layouts": [],
  "nodes": {
   "macroNodes": [],
   "nodes": [
    {
-    "avgwalltime": "0.7637567703540509",
+    "avgwalltime": "0.5915819605191549",
     "id": 4797011432,
     "key": "src.CS_Example.DataConsistency",
     "name": "DataConsistency",
@@ -37,8 +37,8 @@
          "portNum": 0
         },
         "src": {
-         "nodeID": 4921373896,
-         "portID": 4947210456,
+         "nodeID": 4921290040,
+         "portID": 4805618568,
          "portName": "out",
          "portNum": 0
         }
@@ -101,13 +101,13 @@
      }
     ],
     "pos": [
-     -37.421052631578945,
-     206.73684210526315
+     -38.88615304851629,
+     226.68158340814276
     ],
-    "stdwalltime": "1.225238958870518",
-    "walltime": "0.6581599712371826",
+    "stdwalltime": "0.9211397117517911",
+    "walltime": "0.45448994636535645",
     "widget_settings": {
-     "label": "",
+     "label": "X_hat = np.where(Y == 0 + 0j, X, Y)\n",
      "parms": []
     }
    },
@@ -157,8 +157,8 @@
      }
     ],
     "pos": [
-     -113.42105263157895,
-     -263.2631578947369
+     -112.74485243914633,
+     -267.8530384960659
     ],
     "stdwalltime": "0.08634543418884277",
     "walltime": "0.44626498222351074",
@@ -274,8 +274,8 @@
      }
     ],
     "pos": [
-     215.57894736842104,
-     -68.26315789473685
+     216.2551475608537,
+     -72.85303849606589
     ],
     "stdwalltime": "0.06013202667236328",
     "walltime": "0.3363931179046631",
@@ -418,7 +418,7 @@
     }
    },
    {
-    "avgwalltime": "0.016601145267486572",
+    "avgwalltime": "0.016090959310531616",
     "id": 4796971048,
     "key": "core.display.ImageDisplay",
     "name": "ImageDisplay",
@@ -433,8 +433,8 @@
          "portNum": 0
         },
         "src": {
-         "nodeID": 4947275496,
-         "portID": 4843857816,
+         "nodeID": 4947209816,
+         "portID": 4947237912,
          "portName": "out",
          "portNum": 0
         }
@@ -458,11 +458,11 @@
      }
     ],
     "pos": [
-     105.57894736842105,
-     97.73684210526315
+     106.25514756085367,
+     93.14696150393411
     ],
-    "stdwalltime": "0.0028780226300488365",
-    "walltime": "0.016682147979736328",
+    "stdwalltime": "0.0021604640423551007",
+    "walltime": "0.016571998596191406",
     "widget_settings": {
      "label": "CS image",
      "parms": [
@@ -741,12 +741,225 @@
         "outport": false,
         "quietval": null,
         "singlestep": 1.0,
-        "val": 0.91,
+        "val": 0.88,
         "visible": true,
         "wrapping": false
        },
        "name": "Range Max",
        "type": "<class 'gpi.widgets.DoubleSpinBox'>"
+      }
+     ]
+    }
+   },
+   {
+    "avgwalltime": "0.3864342530568441",
+    "id": 4947209816,
+    "key": "core.math.FFTW",
+    "name": "FFTW",
+    "ports": [
+     {
+      "connections": [
+       {
+        "dest": {
+         "nodeID": 4947209816,
+         "portID": 4947237768,
+         "portName": "in",
+         "portNum": 0
+        },
+        "src": {
+         "nodeID": 5009226488,
+         "portID": 4801303752,
+         "portName": "n",
+         "portNum": 0
+        }
+       }
+      ],
+      "id": 4947237768,
+      "obligation": 100,
+      "portnum": 0,
+      "porttitle": "in",
+      "porttype": 65540,
+      "widgetTitle": null
+     },
+     {
+      "connections": [
+       {
+        "dest": {
+         "nodeID": 4947421944,
+         "portID": 4947230584,
+         "portName": "input",
+         "portNum": 0
+        },
+        "src": {
+         "nodeID": 4947209816,
+         "portID": 4947237912,
+         "portName": "out",
+         "portNum": 0
+        }
+       },
+       {
+        "dest": {
+         "nodeID": 4796971048,
+         "portID": 4921294568,
+         "portName": "in",
+         "portNum": 0
+        },
+        "src": {
+         "nodeID": 4947209816,
+         "portID": 4947237912,
+         "portName": "out",
+         "portNum": 0
+        }
+       }
+      ],
+      "id": 4947237912,
+      "obligation": null,
+      "portnum": 0,
+      "porttitle": "out",
+      "porttype": 65541,
+      "widgetTitle": null
+     }
+    ],
+    "pos": [
+     -38.88615304851629,
+     26.681583408142757
+    ],
+    "stdwalltime": "0.055673028526902965",
+    "walltime": "0.4275038242340088",
+    "widget_settings": {
+     "label": "",
+     "parms": [
+      {
+       "kwargs": {
+        "collapsed": false,
+        "id": 4947310920,
+        "inport": false,
+        "outport": false,
+        "quietval": null,
+        "val": {
+         "compute": true,
+         "in_len": 512,
+         "length": 512
+        },
+        "visible": true
+       },
+       "name": "Dimension[-1]",
+       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFTW_GPI.FFTW_GROUP'>"
+      },
+      {
+       "kwargs": {
+        "collapsed": false,
+        "id": 4947202264,
+        "inport": false,
+        "outport": false,
+        "quietval": null,
+        "val": {
+         "compute": true,
+         "in_len": 512,
+         "length": 512
+        },
+        "visible": true
+       },
+       "name": "Dimension[-2]",
+       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFTW_GPI.FFTW_GROUP'>"
+      },
+      {
+       "kwargs": {
+        "collapsed": false,
+        "id": 4947204136,
+        "inport": false,
+        "outport": false,
+        "quietval": null,
+        "val": {
+         "compute": false,
+         "in_len": 1,
+         "length": 1
+        },
+        "visible": false
+       },
+       "name": "Dimension[-3]",
+       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFTW_GPI.FFTW_GROUP'>"
+      },
+      {
+       "kwargs": {
+        "collapsed": false,
+        "id": 4947206008,
+        "inport": false,
+        "outport": false,
+        "quietval": null,
+        "val": {
+         "compute": false,
+         "in_len": 1,
+         "length": 1
+        },
+        "visible": false
+       },
+       "name": "Dimension[-4]",
+       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFTW_GPI.FFTW_GROUP'>"
+      },
+      {
+       "kwargs": {
+        "collapsed": false,
+        "id": 4947322632,
+        "inport": false,
+        "outport": false,
+        "quietval": null,
+        "val": {
+         "compute": false,
+         "in_len": 1,
+         "length": 1
+        },
+        "visible": false
+       },
+       "name": "Dimension[-5]",
+       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFTW_GPI.FFTW_GROUP'>"
+      },
+      {
+       "kwargs": {
+        "collapsed": false,
+        "id": 4947324504,
+        "inport": false,
+        "outport": false,
+        "quietval": null,
+        "val": {
+         "compute": false,
+         "in_len": 1,
+         "length": 1
+        },
+        "visible": false
+       },
+       "name": "Dimension[-6]",
+       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFTW_GPI.FFTW_GROUP'>"
+      },
+      {
+       "kwargs": {
+        "button_title": "",
+        "collapsed": false,
+        "id": 4947236328,
+        "inport": false,
+        "outport": false,
+        "quietval": null,
+        "toggle": true,
+        "val": true,
+        "visible": true
+       },
+       "name": "inverse",
+       "type": "<class 'gpi.widgets.PushButton'>"
+      },
+      {
+       "kwargs": {
+        "button_title": "",
+        "collapsed": false,
+        "id": 4947237048,
+        "inport": false,
+        "outport": false,
+        "quietval": null,
+        "toggle": true,
+        "val": true,
+        "visible": true
+       },
+       "name": "compute",
+       "type": "<class 'gpi.widgets.PushButton'>"
       }
      ]
     }
@@ -792,8 +1005,8 @@
      }
     ],
     "pos": [
-     215.57894736842104,
-     -32.26315789473685
+     216.2551475608537,
+     -36.85303849606589
     ],
     "stdwalltime": "5.2928924560546875e-05",
     "walltime": "0.013865947723388672",
@@ -1126,8 +1339,8 @@
      }
     ],
     "pos": [
-     143.57894736842104,
-     7.73684210526315
+     144.2551475608537,
+     3.146961503934108
     ],
     "stdwalltime": "0.0015439987182617188",
     "walltime": "0.015713930130004883",
@@ -1420,521 +1633,7 @@
     }
    },
    {
-    "avgwalltime": "0.8244788830096905",
-    "id": 4921373896,
-    "key": "core.math.FFT_NUMPY",
-    "name": "FFT_NUMPY",
-    "ports": [
-     {
-      "connections": [
-       {
-        "dest": {
-         "nodeID": 4921373896,
-         "portID": 4947210312,
-         "portName": "in",
-         "portNum": 0
-        },
-        "src": {
-         "nodeID": 4680403848,
-         "portID": 4780724584,
-         "portName": "output",
-         "portNum": 0
-        }
-       }
-      ],
-      "id": 4947210312,
-      "obligation": 100,
-      "portnum": 0,
-      "porttitle": "in",
-      "porttype": 65540,
-      "widgetTitle": null
-     },
-     {
-      "connections": [
-       {
-        "dest": {
-         "nodeID": 4797011432,
-         "portID": 4796891928,
-         "portName": "X_iter",
-         "portNum": 0
-        },
-        "src": {
-         "nodeID": 4921373896,
-         "portID": 4947210456,
-         "portName": "out",
-         "portNum": 0
-        }
-       }
-      ],
-      "id": 4947210456,
-      "obligation": null,
-      "portnum": 0,
-      "porttitle": "out",
-      "porttype": 65541,
-      "widgetTitle": null
-     }
-    ],
-    "pos": [
-     -37.421052631578945,
-     170.73684210526315
-    ],
-    "stdwalltime": "1.526386082703724",
-    "walltime": "0.4311552047729492",
-    "widget_settings": {
-     "label": "",
-     "parms": [
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4921376632,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": true,
-         "in_len": 512,
-         "length": 512
-        },
-        "visible": true
-       },
-       "name": "Dimension[-1]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4921407240,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": true,
-         "in_len": 512,
-         "length": 512
-        },
-        "visible": true
-       },
-       "name": "Dimension[-2]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4921409112,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": false,
-         "in_len": 1,
-         "length": 1
-        },
-        "visible": false
-       },
-       "name": "Dimension[-3]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4921456104,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": false,
-         "in_len": 1,
-         "length": 1
-        },
-        "visible": false
-       },
-       "name": "Dimension[-4]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4921510648,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": false,
-         "in_len": 1,
-         "length": 1
-        },
-        "visible": false
-       },
-       "name": "Dimension[-5]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4921457832,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": false,
-         "in_len": 1,
-         "length": 1
-        },
-        "visible": false
-       },
-       "name": "Dimension[-6]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4947276856,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": false,
-         "in_len": 1,
-         "length": 1
-        },
-        "visible": false
-       },
-       "name": "Dimension[-7]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4947278728,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": false,
-         "in_len": 1,
-         "length": 1
-        },
-        "visible": false
-       },
-       "name": "Dimension[-8]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4947333912,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": false,
-         "in_len": 1,
-         "length": 1
-        },
-        "visible": false
-       },
-       "name": "Dimension[-9]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "button_title": "",
-        "collapsed": false,
-        "id": 4947335784,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "toggle": true,
-        "val": true,
-        "visible": true
-       },
-       "name": "compute",
-       "type": "<class 'gpi.widgets.PushButton'>"
-      },
-      {
-       "kwargs": {
-        "button_title": "FORWARD",
-        "collapsed": false,
-        "id": 4947336504,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "toggle": true,
-        "val": false,
-        "visible": true
-       },
-       "name": "direction",
-       "type": "<class 'gpi.widgets.PushButton'>"
-      }
-     ]
-    }
-   },
-   {
-    "avgwalltime": "0.6558494170506796",
-    "id": 4947275496,
-    "key": "core.math.FFT_NUMPY",
-    "name": "FFT_NUMPY",
-    "ports": [
-     {
-      "connections": [
-       {
-        "dest": {
-         "nodeID": 4947275496,
-         "portID": 4843859832,
-         "portName": "in",
-         "portNum": 0
-        },
-        "src": {
-         "nodeID": 5009226488,
-         "portID": 4801303752,
-         "portName": "n",
-         "portNum": 0
-        }
-       }
-      ],
-      "id": 4843859832,
-      "obligation": 100,
-      "portnum": 0,
-      "porttitle": "in",
-      "porttype": 65540,
-      "widgetTitle": null
-     },
-     {
-      "connections": [
-       {
-        "dest": {
-         "nodeID": 4796971048,
-         "portID": 4921294568,
-         "portName": "in",
-         "portNum": 0
-        },
-        "src": {
-         "nodeID": 4947275496,
-         "portID": 4843857816,
-         "portName": "out",
-         "portNum": 0
-        }
-       },
-       {
-        "dest": {
-         "nodeID": 4947421944,
-         "portID": 4947230584,
-         "portName": "input",
-         "portNum": 0
-        },
-        "src": {
-         "nodeID": 4947275496,
-         "portID": 4843857816,
-         "portName": "out",
-         "portNum": 0
-        }
-       }
-      ],
-      "id": 4843857816,
-      "obligation": null,
-      "portnum": 0,
-      "porttitle": "out",
-      "porttype": 65541,
-      "widgetTitle": null
-     }
-    ],
-    "pos": [
-     -37.421052631578945,
-     26.73684210526315
-    ],
-    "stdwalltime": "0.749659046868649",
-    "walltime": "0.41371607780456543",
-    "widget_settings": {
-     "label": "",
-     "parms": [
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4921288456,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": true,
-         "in_len": 512,
-         "length": 512
-        },
-        "visible": true
-       },
-       "name": "Dimension[-1]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4921290184,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": true,
-         "in_len": 512,
-         "length": 512
-        },
-        "visible": true
-       },
-       "name": "Dimension[-2]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4947223320,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": false,
-         "in_len": 1,
-         "length": 1
-        },
-        "visible": false
-       },
-       "name": "Dimension[-3]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4947196520,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": false,
-         "in_len": 1,
-         "length": 1
-        },
-        "visible": false
-       },
-       "name": "Dimension[-4]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4947193928,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": false,
-         "in_len": 1,
-         "length": 1
-        },
-        "visible": false
-       },
-       "name": "Dimension[-5]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4921328408,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": false,
-         "in_len": 1,
-         "length": 1
-        },
-        "visible": false
-       },
-       "name": "Dimension[-6]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4921320216,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": false,
-         "in_len": 1,
-         "length": 1
-        },
-        "visible": false
-       },
-       "name": "Dimension[-7]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4933271768,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": false,
-         "in_len": 1,
-         "length": 1
-        },
-        "visible": false
-       },
-       "name": "Dimension[-8]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "collapsed": false,
-        "id": 4796990808,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "val": {
-         "compute": false,
-         "in_len": 1,
-         "length": 1
-        },
-        "visible": false
-       },
-       "name": "Dimension[-9]",
-       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFT_NUMPY_GPI.FFTW_GROUP'>"
-      },
-      {
-       "kwargs": {
-        "button_title": "",
-        "collapsed": false,
-        "id": 4788497576,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "toggle": true,
-        "val": true,
-        "visible": true
-       },
-       "name": "compute",
-       "type": "<class 'gpi.widgets.PushButton'>"
-      },
-      {
-       "kwargs": {
-        "button_title": "INVERSE",
-        "collapsed": false,
-        "id": 4843858104,
-        "inport": false,
-        "outport": false,
-        "quietval": null,
-        "toggle": true,
-        "val": true,
-        "visible": true
-       },
-       "name": "direction",
-       "type": "<class 'gpi.widgets.PushButton'>"
-      }
-     ]
-    }
-   },
-   {
-    "avgwalltime": "0.05465759336948395",
+    "avgwalltime": "0.05568746862740352",
     "id": 5009226488,
     "key": "core.iterate.Iter",
     "name": "Iter",
@@ -1991,8 +1690,8 @@
       "connections": [
        {
         "dest": {
-         "nodeID": 4947275496,
-         "portID": 4843859832,
+         "nodeID": 4947209816,
+         "portID": 4947237768,
          "portName": "in",
          "portNum": 0
         },
@@ -2013,11 +1712,11 @@
      }
     ],
     "pos": [
-     -193.42105263157896,
-     116.73684210526315
+     -192.7448524391463,
+     112.14696150393411
     ],
-    "stdwalltime": "0.01637127427445006",
-    "walltime": "0.0632929801940918",
+    "stdwalltime": "0.016560958509328833",
+    "walltime": "0.0586390495300293",
     "widget_settings": {
      "label": "",
      "parms": [
@@ -2168,8 +1867,8 @@
      }
     ],
     "pos": [
-     215.57894736842104,
-     -114.26315789473685
+     216.2551475608537,
+     -118.85303849606589
     ],
     "stdwalltime": "0.051892995834350586",
     "walltime": "0.3695650100708008",
@@ -2281,8 +1980,8 @@
      }
     ],
     "pos": [
-     -1.421052631578947,
-     -135.26315789473685
+     -0.7448524391463227,
+     -139.8530384960659
     ],
     "stdwalltime": "0.0009894371032714844",
     "walltime": "0.012638092041015625",
@@ -2575,7 +2274,7 @@
     }
    },
    {
-    "avgwalltime": "0.445541779200236",
+    "avgwalltime": "0.4639667471249898",
     "id": 4947421944,
     "key": "bart.gpi.cdf97",
     "name": "cdf97",
@@ -2590,8 +2289,8 @@
          "portNum": 0
         },
         "src": {
-         "nodeID": 4947275496,
-         "portID": 4843857816,
+         "nodeID": 4947209816,
+         "portID": 4947237912,
          "portName": "out",
          "portNum": 0
         }
@@ -2630,13 +2329,13 @@
      }
     ],
     "pos": [
-     -37.421052631578945,
-     62.73684210526315
+     -38.88615304851629,
+     62.68158340814276
     ],
-    "stdwalltime": "0.074284870294393",
-    "walltime": "0.4250779151916504",
+    "stdwalltime": "0.05796384695285586",
+    "walltime": "0.4972190856933594",
     "widget_settings": {
-     "label": "",
+     "label": "wavelet transform",
      "parms": [
       {
        "kwargs": {
@@ -2685,6 +2384,205 @@
         "visible": true
        },
        "name": "direction",
+       "type": "<class 'gpi.widgets.PushButton'>"
+      }
+     ]
+    }
+   },
+   {
+    "avgwalltime": "0.35912753641605377",
+    "id": 4921290040,
+    "key": "core.math.FFTW",
+    "name": "FFTW",
+    "ports": [
+     {
+      "connections": [
+       {
+        "dest": {
+         "nodeID": 4921290040,
+         "portID": 4805617992,
+         "portName": "in",
+         "portNum": 0
+        },
+        "src": {
+         "nodeID": 4680403848,
+         "portID": 4780724584,
+         "portName": "output",
+         "portNum": 0
+        }
+       }
+      ],
+      "id": 4805617992,
+      "obligation": 100,
+      "portnum": 0,
+      "porttitle": "in",
+      "porttype": 65540,
+      "widgetTitle": null
+     },
+     {
+      "connections": [
+       {
+        "dest": {
+         "nodeID": 4797011432,
+         "portID": 4796891928,
+         "portName": "X_iter",
+         "portNum": 0
+        },
+        "src": {
+         "nodeID": 4921290040,
+         "portID": 4805618568,
+         "portName": "out",
+         "portNum": 0
+        }
+       }
+      ],
+      "id": 4805618568,
+      "obligation": null,
+      "portnum": 0,
+      "porttitle": "out",
+      "porttype": 65541,
+      "widgetTitle": null
+     }
+    ],
+    "pos": [
+     -38.88615304851629,
+     190.68158340814276
+    ],
+    "stdwalltime": "0.04002414297059609",
+    "walltime": "0.38382411003112793",
+    "widget_settings": {
+     "label": "",
+     "parms": [
+      {
+       "kwargs": {
+        "collapsed": false,
+        "id": 4947196088,
+        "inport": false,
+        "outport": false,
+        "quietval": null,
+        "val": {
+         "compute": true,
+         "in_len": 512,
+         "length": 512
+        },
+        "visible": true
+       },
+       "name": "Dimension[-1]",
+       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFTW_GPI.FFTW_GROUP'>"
+      },
+      {
+       "kwargs": {
+        "collapsed": false,
+        "id": 4947196232,
+        "inport": false,
+        "outport": false,
+        "quietval": null,
+        "val": {
+         "compute": true,
+         "in_len": 512,
+         "length": 512
+        },
+        "visible": true
+       },
+       "name": "Dimension[-2]",
+       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFTW_GPI.FFTW_GROUP'>"
+      },
+      {
+       "kwargs": {
+        "collapsed": false,
+        "id": 4921330424,
+        "inport": false,
+        "outport": false,
+        "quietval": null,
+        "val": {
+         "compute": false,
+         "in_len": 1,
+         "length": 1
+        },
+        "visible": false
+       },
+       "name": "Dimension[-3]",
+       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFTW_GPI.FFTW_GROUP'>"
+      },
+      {
+       "kwargs": {
+        "collapsed": false,
+        "id": 4921321080,
+        "inport": false,
+        "outport": false,
+        "quietval": null,
+        "val": {
+         "compute": false,
+         "in_len": 1,
+         "length": 1
+        },
+        "visible": false
+       },
+       "name": "Dimension[-4]",
+       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFTW_GPI.FFTW_GROUP'>"
+      },
+      {
+       "kwargs": {
+        "collapsed": false,
+        "id": 4933272488,
+        "inport": false,
+        "outport": false,
+        "quietval": null,
+        "val": {
+         "compute": false,
+         "in_len": 1,
+         "length": 1
+        },
+        "visible": false
+       },
+       "name": "Dimension[-5]",
+       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFTW_GPI.FFTW_GROUP'>"
+      },
+      {
+       "kwargs": {
+        "collapsed": false,
+        "id": 4796991528,
+        "inport": false,
+        "outport": false,
+        "quietval": null,
+        "val": {
+         "compute": false,
+         "in_len": 1,
+         "length": 1
+        },
+        "visible": false
+       },
+       "name": "Dimension[-6]",
+       "type": "<class '/Users/ash/Src/gpi/core/math/GPI/FFTW_GPI.FFTW_GROUP'>"
+      },
+      {
+       "kwargs": {
+        "button_title": "",
+        "collapsed": false,
+        "id": 4796992248,
+        "inport": false,
+        "outport": false,
+        "quietval": null,
+        "toggle": true,
+        "val": false,
+        "visible": true
+       },
+       "name": "inverse",
+       "type": "<class 'gpi.widgets.PushButton'>"
+      },
+      {
+       "kwargs": {
+        "button_title": "",
+        "collapsed": false,
+        "id": 4796992968,
+        "inport": false,
+        "outport": false,
+        "quietval": null,
+        "toggle": true,
+        "val": true,
+        "visible": true
+       },
+       "name": "compute",
        "type": "<class 'gpi.widgets.PushButton'>"
       }
      ]
@@ -2746,8 +2644,8 @@
      }
     ],
     "pos": [
-     -174.42105263157896,
-     -180.26315789473685
+     -173.7448524391463,
+     -184.8530384960659
     ],
     "stdwalltime": "0.08014500141143799",
     "walltime": "0.35857200622558594",
@@ -2890,7 +2788,7 @@
     }
    },
    {
-    "avgwalltime": "0.5486230850219727",
+    "avgwalltime": "0.41292999340937686",
     "id": 4805767672,
     "key": "bart.gpi.Threshold",
     "name": "Threshold",
@@ -2945,11 +2843,11 @@
      }
     ],
     "pos": [
-     -37.421052631578945,
-     98.73684210526315
+     -38.88615304851629,
+     108.68158340814276
     ],
-    "stdwalltime": "0.0",
-    "walltime": "0.5486230850219727",
+    "stdwalltime": "0.06538602958782365",
+    "walltime": "0.43200016021728516",
     "widget_settings": {
      "label": "",
      "parms": [
@@ -3027,8 +2925,8 @@
      }
     ],
     "pos": [
-     -330.42105263157896,
-     -133.26315789473685
+     -329.7448524391463,
+     -137.8530384960659
     ],
     "stdwalltime": "0.13715147972106934",
     "walltime": "0.46891188621520996",
@@ -3089,7 +2987,7 @@
     }
    },
    {
-    "avgwalltime": "0.48190584549537074",
+    "avgwalltime": "0.4625755500793457",
     "id": 4680403848,
     "key": "bart.gpi.cdf97",
     "name": "cdf97",
@@ -3122,8 +3020,8 @@
       "connections": [
        {
         "dest": {
-         "nodeID": 4921373896,
-         "portID": 4947210312,
+         "nodeID": 4798436840,
+         "portID": 4778692040,
          "portName": "in",
          "portNum": 0
         },
@@ -3136,8 +3034,8 @@
        },
        {
         "dest": {
-         "nodeID": 4798436840,
-         "portID": 4778692040,
+         "nodeID": 4921290040,
+         "portID": 4805617992,
          "portName": "in",
          "portNum": 0
         },
@@ -3158,13 +3056,13 @@
      }
     ],
     "pos": [
-     -37.421052631578945,
-     134.73684210526315
+     -38.88615304851629,
+     144.68158340814276
     ],
-    "stdwalltime": "0.14801826592139475",
-    "walltime": "0.411344051361084",
+    "stdwalltime": "0.10908309740993136",
+    "walltime": "0.4208521842956543",
     "widget_settings": {
-     "label": "",
+     "label": "inverse wavelet",
      "parms": [
       {
        "kwargs": {
@@ -3340,8 +3238,8 @@
      }
     ],
     "pos": [
-     -183.42105263157896,
-     5.73684210526315
+     -182.7448524391463,
+     1.146961503934108
     ],
     "stdwalltime": "0.09266996383666992",
     "walltime": "0.39054393768310547",
@@ -3413,7 +3311,7 @@
     }
    },
    {
-    "avgwalltime": "0.01469887219942533",
+    "avgwalltime": "0.015481853485107422",
     "id": 4798436840,
     "key": "core.display.ImageDisplay",
     "name": "ImageDisplay",
@@ -3453,11 +3351,11 @@
      }
     ],
     "pos": [
-     109.57894736842105,
-     166.73684210526315
+     110.25514756085367,
+     162.1469615039341
     ],
-    "stdwalltime": "0.0018350601173780824",
-    "walltime": "0.01595592498779297",
+    "stdwalltime": "0.0018409381735028534",
+    "walltime": "0.015614032745361328",
     "widget_settings": {
      "label": "",
      "parms": [
@@ -3736,7 +3634,7 @@
         "outport": false,
         "quietval": null,
         "singlestep": 1.0,
-        "val": 0.89,
+        "val": 0.86,
         "visible": true,
         "wrapping": false
        },
@@ -3778,8 +3676,8 @@
      }
     ],
     "pos": [
-     215.57894736842104,
-     -168.26315789473685
+     216.2551475608537,
+     -172.8530384960659
     ],
     "stdwalltime": "0.08272445201873779",
     "walltime": "0.4008200168609619",
