@@ -3,6 +3,9 @@
  * a BSD-style license which can be found in the LICENSE file.
  */
 
+#ifndef __MISC_H
+#define __MISC_H
+
 #include <stdlib.h>
 
 #ifndef M_PI
@@ -15,6 +18,7 @@
 #define UNUSED(x) (void)(x)
 
 #define MAKE_ARRAY(x, ...) ((__typeof__(x)[]){ x, __VA_ARGS__ })
+#define ARRAY_SIZE(x)	(sizeof(x) / sizeof(x[0]))
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,6 +34,14 @@ extern "C" {
 extern void* xmalloc(size_t s);
 
 #define XMALLOC(x) (x = xmalloc(sizeof(*x)))
+
+
+#define _TYPE_ALLOC(T)		((T*)xmalloc(sizeof(T)))
+#define TYPE_ALLOC(T)		_TYPE_ALLOC(__typeof__(T))
+#define TYPE_CHECK(T, x)	({ T* _ptr1 = 0; __typeof(x)* _ptr2 = _ptr1; (void)_ptr2; (x);  })
+
+#define _PTR_ALLOC(T, x)	T* x = xmalloc(sizeof(T))
+#define PTR_ALLOC(T, x)		_PTR_ALLOC(__typeof__(T), x)
 
 extern int parse_cfl(_Complex float res[1], const char* str);
 extern void error(const char* str, ...);
@@ -51,10 +63,14 @@ extern void print_complex(unsigned int D, const _Complex float arr[__VLA(D)]);
 
 extern unsigned int bitcount(unsigned int flags);
 
+extern const char* command_line;
+extern void save_command_line(int argc, char* argv[__VLA(argc)]);
+
 #ifdef __cplusplus
 }
 #endif
 #undef __VLA
 
 
+#endif // __MISC_H
 

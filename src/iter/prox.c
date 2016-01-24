@@ -1,9 +1,9 @@
-/* Copyright 2014. The Regents of the University of California.
+/* Copyright 2014-2015. The Regents of the University of California.
  * All rights reserved. Use of this source code is governed by 
  * a BSD-style license which can be found in the LICENSE file.
  *
  * Authors: 
- * 2014	Jonathan Tamir <jtamir@eecs.berkeley.edu>
+ * 2014-2015	Jonathan Tamir <jtamir@eecs.berkeley.edu>
  */
 
 #include <complex.h>
@@ -107,9 +107,8 @@ static void prox_normaleq_del(const void* _data)
 
 const struct operator_p_s* prox_normaleq_create(const struct linop_s* op, const complex float* y)
 {
-	struct prox_normaleq_data* pdata = xmalloc(sizeof(struct prox_normaleq_data));
-
-	struct iter_conjgrad_conf* cgconf = xmalloc(sizeof(struct iter_conjgrad_conf));
+	PTR_ALLOC(struct prox_normaleq_data, pdata);
+	PTR_ALLOC(struct iter_conjgrad_conf, cgconf);
 
 	*cgconf = iter_conjgrad_defaults;
 	cgconf->maxiter = 10;
@@ -181,7 +180,7 @@ static void prox_leastsquares_del(const void* _data)
 const struct operator_p_s* prox_leastsquares_create(unsigned int N, const long dims[N], float lambda, const complex float* y)
 
 {
-	struct prox_leastsquares_data* pdata = xmalloc( sizeof(struct prox_leastsquares_data) );
+	PTR_ALLOC(struct prox_leastsquares_data, pdata);
 
 	pdata->y = (const float*)y;
 	pdata->lambda = lambda;
@@ -246,7 +245,7 @@ static void prox_l2ball_del(const void* _data)
 
 const struct operator_p_s* prox_l2ball_create(unsigned int N, const long dims[N], float eps, const complex float* center)
 {
-	struct prox_l2ball_data* pdata = xmalloc(sizeof(struct prox_l2ball_data));
+	PTR_ALLOC(struct prox_l2ball_data, pdata);
 
 	pdata->center = (const float*)center;
 	pdata->eps = eps;
@@ -300,7 +299,7 @@ const struct operator_p_s* prox_thresh_create(unsigned int N, const long dims[N]
 		void (*thresh)(void* _data, float lambda, float* _dst, const float* _src),
 		void* data)
 {
-	struct prox_thresh_data* pdata = xmalloc( sizeof(struct prox_thresh_data) );
+	PTR_ALLOC(struct prox_thresh_data, pdata);
 
 	pdata->thresh = thresh;
 	pdata->lambda = lambda;
@@ -350,7 +349,7 @@ static void prox_zero_del(const void* _data)
 
 const struct operator_p_s* prox_zero_create(unsigned int N, const long dims[N])
 {
-	struct prox_zero_data* pdata = xmalloc(sizeof(struct prox_zero_data));
+	PTR_ALLOC(struct prox_zero_data, pdata);
 
 	pdata->size = md_calc_size(N, dims) * 2;
 
@@ -399,7 +398,7 @@ static void prox_lineq_del(const void* _data)
 
 const struct operator_p_s* prox_lineq_create(const struct linop_s* op, const complex float* y)
 {
-	struct prox_lineq_data* pdata = xmalloc(sizeof(struct prox_lineq_data));
+	PTR_ALLOC(struct prox_lineq_data, pdata);
 
 	unsigned int N = linop_domain(op)->N;
 	const long* dims = linop_domain(op)->dims;
@@ -412,4 +411,97 @@ const struct operator_p_s* prox_lineq_create(const struct linop_s* op, const com
 	pdata->tmp = md_alloc_sameplace(N, dims, CFL_SIZE, y);
 
 	return operator_p_create(N, dims, N, dims, pdata, prox_lineq_apply, prox_lineq_del);
+}
+
+
+/**
+ * Data for computing prox_ineq_fun: 
+ * Proximal function for f(z) = 1{ z <= b }
+ *  and f(z) = 1{ z >= b }
+ *
+ * @param b b
+ * @param size size of z
+ */
+struct prox_ineq_data {
+	
+	const float* b;
+	long size;
+	bool positive;
+};
+
+static void prox_ineq_fun(const void* _data, float mu, float* dst, const float* src)
+{
+	UNUSED(mu);
+	struct prox_ineq_data* pdata = (struct prox_ineq_data*)_data;
+
+	if (NULL == pdata->b)
+		(pdata->positive ? md_smax : md_smin)(1, MD_DIMS(pdata->size), dst, src, 0.);
+	else
+		(pdata->positive ? md_max : md_min)(1, MD_DIMS(pdata->size), dst, src, pdata->b);
+}
+
+static void prox_ineq_apply(const void* _data, float mu, complex float* dst, const complex float* src)
+{
+	prox_ineq_fun((void*)_data, mu, (float*)dst, (const float*)src);
+}
+
+static void prox_ineq_del(const void* _data)
+{
+	free((void*)_data);
+}
+
+static const struct operator_p_s* prox_ineq_create(unsigned int N, const long dims[N], const complex float* b, bool positive)
+{
+	PTR_ALLOC(struct prox_ineq_data, pdata);
+
+	pdata->size = md_calc_size(N, dims) * 2;
+	pdata->b = (const float*)b;
+	pdata->positive = positive;
+
+	return operator_p_create(N, dims, N, dims, pdata, prox_ineq_apply, prox_ineq_del);
+}
+
+
+/*
+ * Proximal function for less than or equal to:
+ * f(z) = 1{z <= b}
+ */
+const struct operator_p_s* prox_lesseq_create(unsigned int N, const long dims[N], const complex float* b)
+{
+	return prox_ineq_create(N, dims, b, false);
+}
+
+/*
+ * Proximal function for greater than or equal to:
+ * f(z) = 1{z >= b}
+ */
+const struct operator_p_s* prox_greq_create(unsigned int N, const long dims[N], const complex float* b)
+{
+	return prox_ineq_create(N, dims, b, true);
+}
+
+struct prox_rvc_data {
+	long size;
+};
+
+static void prox_rvc_apply(const void* _data, float mu, complex float* dst, const complex float* src)
+{
+	UNUSED(mu);
+	struct prox_rvc_data* pdata = (struct prox_rvc_data*)_data;
+	md_zreal(1, MD_DIMS(pdata->size), dst, src);
+}
+
+static void prox_rvc_del(const void* _data)
+{
+	free((void*)_data);
+}
+
+/*
+ * Proximal function for real-value constraint
+ */
+const struct operator_p_s* prox_rvc_create(unsigned int N, const long dims[N])
+{
+	PTR_ALLOC(struct prox_rvc_data, pdata);
+	pdata->size = md_calc_size(N, dims);
+	return operator_p_create(N, dims, N, dims, pdata, prox_rvc_apply, prox_rvc_del);
 }

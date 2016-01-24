@@ -5,6 +5,7 @@
  * Authors:
  * 2012-2015 Martin Uecker <uecker@eecs.berkeley.edu>
  * 2013 Dara Bahri <dbahri123@gmail.com>
+ * 2015 Siddharth Iyer <sid8795@gmail.com>
  *
  *
  * Uecker M, Lai P, Murphy MJ, Virtue P, Elad M, Pauly JM, Vasanawala SS, Lustig M.
@@ -35,6 +36,7 @@
 
 #include "calib/calmat.h"
 #include "calib/cc.h"
+#include "calib/softweight.h"
 
 #include "calib.h"
 
@@ -496,7 +498,7 @@ void compute_kernels(const struct ecalib_conf* conf, long nskerns_dims[5], compl
 	complex float* nskerns = md_alloc(5, nskerns_dims, CFL_SIZE);
 	*nskerns_ptr = nskerns;
 
-	complex float (*vec)[N] = xmalloc(N * N * sizeof(complex float));
+	PTR_ALLOC(complex float[N][N], vec);
 
 	assert((NULL == svals) || (SN == N));
 	float* val = (NULL != svals) ? svals : xmalloc(N * FL_SIZE);
@@ -504,34 +506,41 @@ void compute_kernels(const struct ecalib_conf* conf, long nskerns_dims[5], compl
 	debug_printf(DP_DEBUG1, "Build calibration matrix and SVD...\n");
 
 #ifdef CALMAT_SVD
-	calmat_svd(conf->kdims, N, vec, val, caldims, caldata);
+	calmat_svd(conf->kdims, N, *vec, val, caldims, caldata);
+
+        if (conf->weighting)
+		soft_weight_singular_vectors(N, conf->kdims, caldims, val, val);
 
 	for (int i = 0; i < N; i++)
 		for (int j = 0; j < N; j++) 
 #ifndef FLIP
-			nskerns[i * N + j] = (vec[j][i]) * (conf->weighting ? val[i] : 1.);
+			nskerns[i * N + j] = ((*vec)[j][i]) * (conf->weighting ? val[i] : 1.);
 #else
-			nskerns[i * N + j] = (vec[j][N - 1 - i]) * (conf->weighting ? val[N - 1 - i] : 1.);
+			nskerns[i * N + j] = ((*vec)[j][N - 1 - i]) * (conf->weighting ? val[N - 1 - i] : 1.);
 #endif
 #else
-	covariance_function(conf->kdims, N, vec, caldims, caldata);
+	covariance_function(conf->kdims, N, *vec, caldims, caldata);
 
 	debug_printf(DP_DEBUG1, "Eigen decomposition... (size: %ld)\n", N);
 
 	// we could apply Nystroem method here to speed it up
 
 	float tmp_val[N];
-	lapack_eig(N, tmp_val, vec);
+	lapack_eig(N, tmp_val, *vec);
 
+	// reverse and square root, test for smaller null to avoid NaNs
 	for (int i = 0; i < N; i++)
-		val[i] = sqrtf(tmp_val[N - 1 - i]);
+		val[i] = (tmp_val[N - 1 - i] < 0.) ? 0. : sqrtf(tmp_val[N - 1 - i]);
+
+        if (conf->weighting)
+		soft_weight_singular_vectors(N, conf->kdims, caldims, val, val);
 
 	for (int i = 0; i < N; i++)
 		for (int j = 0; j < N; j++) 
 #ifndef FLIP
-			nskerns[i * N + j] = vec[N - 1 - i][j] * (conf->weighting ? val[i] : 1.);	// flip
+			nskerns[i * N + j] = (*vec)[N - 1 - i][j] * (conf->weighting ? val[i] : 1.);	// flip
 #else
-			nskerns[i * N + j] = vec[i][j] * (conf->weighting ? val[N - 1 - i] : 1.);	// flip
+			nskerns[i * N + j] = (*vec)[i][j] * (conf->weighting ? val[N - 1 - i] : 1.);	// flip
 #endif
 #endif
 

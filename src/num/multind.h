@@ -34,6 +34,8 @@ typedef void (*md_loop_fun_t)(void* data, const long* pos);
 extern void md_nary(unsigned int C, unsigned int D, const long dim[__VLA(D)], const long* str[__VLA(C)], void* ptr[__VLA(C)], void* data, md_nary_fun_t fun);
 
 extern void md_parallel_nary(unsigned int C, unsigned int D, const long dim[__VLA(D)], unsigned int flags, const long* str[__VLA(C)], void* ptr[__VLA(C)], void* data, md_nary_fun_t fun);
+extern void md_parallel_loop(unsigned int D, const long dim[__VLA(D)], unsigned int flags, void* data, md_loop_fun_t fun);
+
 extern void md_loop(unsigned int D, const long dim[__VLA(D)], void* data, md_loop_fun_t fun);
 
 extern void md_septrafo2(unsigned int D, const long dimensions[__VLA(D)], unsigned long flags, const long strides[__VLA(D)], void* ptr, md_trafo_fun_t fun, void* _data);
@@ -126,12 +128,16 @@ extern _Bool md_next(unsigned int D, const long dims[__VLA(D)], unsigned int fla
 #define MD_CLEAR(x, y) ((x) & ~MD_BIT(y))
 #define MD_SET(x, y)	((x) | MD_BIT(y))
 
-#define MD_CAST_ARRAY2(T, N, dims, x, a, b) \
+#define MD_CAST_ARRAY2_PTR(T, N, dims, x, a, b) \
 	(assert(((a) < (b)) && !md_check_dimensions((N), (dims), (1 << (a)) | (1 << (b)))), \
-					*(T (*)[(dims)[b]][(dims)[a]])(x))
-#define MD_CAST_ARRAY3(T, N, dims, x, a, b, c) \
-	(assert(((a) < (b)) && ((b) < (c)) && !md_check_dimensions((N), (dims), (1 << (a)) | (1 << (b) | (1 << (c)))), \
-					*(T (*)[(dims)[c]][(dims)[b]][(dims)[a]])(x))
+					(T (*)[(dims)[b]][(dims)[a]])(x))
+#define MD_CAST_ARRAY3_PTR(T, N, dims, x, a, b, c) \
+	(assert(((a) < (b)) && ((b) < (c)) && !md_check_dimensions((N), (dims), (1 << (a)) | (1 << (b) | (1 << (c))))), \
+					(T (*)[(dims)[c]][(dims)[b]][(dims)[a]])(x))
+
+#define MD_CAST_ARRAY2(T, N, dims, x, a, b) (*MD_CAST_ARRAY2_PTR(T, N, dims, x, a, b))
+#define MD_CAST_ARRAY3(T, N, dims, x, a, b, c) (*MD_CAST_ARRAY3_PTR(T, N, dims, x, a, b, c))
+
 
 #define MD_ACCESS(N, strs, pos, x)	((x)[md_calc_offset((N), (strs), (pos)) / sizeof((x)[0])])
 

@@ -32,12 +32,11 @@
 #endif
 
 
-const char* usage_str = "[-h] <input> <output_prefix>";
-const char* help_str =	"-h\thelp\n\n"
-			"Create magnitude images as png or proto-dicom.\n"
-			"The first two non-singleton dimensions will\n"
-			"be used for the image, and the other dimensions\n"
-			"will be looped over.\n";
+static const char usage_str[] = "[-h] <input> <output_prefix>";
+static const char help_str[] = "Create magnitude images as png or proto-dicom.\n"
+				"The first two non-singleton dimensions will\n"
+				"be used for the image, and the other dimensions\n"
+				"will be looped over.\n";
 
 
 static void toimg(bool dicom, const char* name, long inum, float max, long h, long w, const complex float* data)
@@ -46,7 +45,7 @@ static void toimg(bool dicom, const char* name, long inum, float max, long h, lo
 	assert(len >= 1);
 
 	int nr_bytes = dicom ? 2 : 3;
-	unsigned char* buf = xmalloc(h * w * nr_bytes);
+	unsigned char (*buf)[h][w][nr_bytes] = TYPE_ALLOC(unsigned char[h][w][nr_bytes]);
 
 	float max_val = dicom ? 65535. : 255.;
 
@@ -58,19 +57,19 @@ static void toimg(bool dicom, const char* name, long inum, float max, long h, lo
 
 			if (!dicom) {
 
-				buf[(i * w + j) * 3 + 0] = value;
-				buf[(i * w + j) * 3 + 1] = value;
-				buf[(i * w + j) * 3 + 2] = value;
+				(*buf)[i][j][0] = value;
+				(*buf)[i][j][1] = value;
+				(*buf)[i][j][2] = value;
 
 			} else {
 
-				buf[(i * w + j) * 2 + 0] = (value >> 0) & 0xFF;
-				buf[(i * w + j) * 2 + 1] = (value >> 8) & 0xFF;
+				(*buf)[i][j][0] = (value >> 0) & 0xFF;
+				(*buf)[i][j][2] = (value >> 8) & 0xFF;
 			}
 		}
 	}
 
-	(dicom  ? dicom_write : png_write_rgb24)(name, w, h, inum, buf);
+	(dicom  ? dicom_write : png_write_rgb24)(name, w, h, inum, &(*buf)[0][0][0]);
 	free(buf);
 }
 

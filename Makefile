@@ -3,6 +3,8 @@
 # All rights reserved. Use of this source code is governed by
 # a BSD-style license which can be found in the LICENSE file.
 
+# we have a two stage Makefile
+MAKESTAGE ?= 1
 
 # silent make
 #MAKEFLAGS += --silent
@@ -15,10 +17,12 @@ AR=./ar_lock.sh
 
 CUDA?=0
 ACML?=0
-GSL?=1
-OMP?=0
+OMP?=1
 SLINK?=0
 DEBUG?=0
+FFTWTHREADS?=1
+
+DESTDIR ?= /
 
 BUILDTYPE = Linux
 UNAME = $(shell uname -s)
@@ -28,7 +32,6 @@ MYLINK=ln
 
 ifeq ($(UNAME),Darwin)
 	BUILDTYPE = MacOSX
-	ACML = 0
 	MYLINK = ln -s
 endif
 
@@ -52,44 +55,42 @@ export TOOLBOX_PATH=$(root)
 DEPFILE = $(*D)/.$(*F).d
 DEPFLAG = -MMD -MF $(DEPFILE)
 ALLDEPS = $(shell find $(srcdir) -name ".*.d")
-#ALLDEPS = $(shell find $(root) -name ".*.d")
 
 
 # Compilation flags
 
 OPT = -O3 -ffast-math
-CPPFLAGS = $(DEPFLAG) -Wall -Wextra -I$(srcdir)/
-CFLAGS = $(OPT) -std=c99 -Wmissing-prototypes -I$(srcdir)/
-CXXFLAGS = $(OPT) -I$(srcdir)/
-CC = gcc
-CXX = g++
-
+CPPFLAGS ?= -Wall -Wextra
+CFLAGS ?= $(OPT) -Wmissing-prototypes
+CXXFLAGS ?= $(OPT)
 
 ifeq ($(BUILDTYPE), MacOSX)
-	CC = clang
+	CC ?= gcc-mp-4.7
+else
+	CC ?= gcc
 endif
+
+CXX ?= g++
+
+
 
 
 # cuda
 
 cuda.top ?= /usr/
 
-# GSL
 
-gsl.top ?= /usr/
-
-ifeq ($(BUILDTYPE), MacOSX)
-# gsl.top = /opt/local
-gsl.top = /usr/local
-endif
-
-# BLAS/LAPACK
+# acml
 
 acml.top ?= /usr/local/acml/acml4.4.0/gfortran64_mp/
 
 # fftw
 
-fftw.top ?= /Users/ash/miniconda/
+ifneq ($(BUILDTYPE), MacOSX)
+fftw.top ?= /usr/
+else
+fftw.top ?= /opt/local/
+endif
 
 # Matlab
 
@@ -106,16 +107,18 @@ ismrm.top ?= /usr/local/ismrmrd/
 # Main build targets
 
 TBASE=show slice crop resize join transpose zeros ones flip circshift extract repmat bitmask reshape version
-TFLP=scale conj fmac saxpy sdot spow cpyphs creal normalize cdf97 relnorm pattern nrmse
-TNUM=fft fftmod fftshift noise bench threshold conv rss
-TRECO=pics pocsense rsense bpsense itsense nlinv nufft rof sake wave
-TCALIB=ecalib ecaltwo caldir walsh cc calmat svd
+TFLP=scale conj fmac saxpy sdot spow cpyphs creal carg normalize cdf97 pattern nrmse mip wavg
+TNUM=fft fftmod fftshift noise bench threshold conv rss filter
+TRECO=pics pocsense rsense bpsense itsense nlinv nufft rof sake wave lrmatrix estdims
+TCALIB=ecalib ecaltwo caldir walsh cc calmat svd estvar
 TMRI=homodyne poisson twixread fakeksp
 TSIM=phantom traj
 TIO=toimg
 BTARGETS = $(TBASE) $(TFLP) $(TNUM) $(TIO)
-XTARGETS = bart $(TRECO) $(TCALIB) $(TMRI) $(TSIM)
-TARGETS = sense $(BTARGETS) $(XTARGETS)
+XTARGETS = $(TRECO) $(TCALIB) $(TMRI) $(TSIM)
+YTARGETS = $(BTARGETS) $(XTARGETS)
+ZTARGETS = bbox bart $(XTARGETS)
+TARGETS = bart $(BTARGETS) $(XTARGETS)
 
 
 
@@ -135,14 +138,19 @@ MODULES_caldir = -lcalib
 MODULES_walsh = -lcalib
 MODULES_calmat = -lcalib
 MODULES_cc = -lcalib
+MODULES_estvar = -lcalib
 MODULES_nufft = -lnoncart -liter -llinops
 MODULES_rof = -liter -llinops
 MODULES_bench = -lwavelet2 -lwavelet3 -llinops
 MODULES_phantom = -lsimu
-MODULES_bart += -lbox -lwavelet2 -lwavelet3 -llinops
+MODULES_bbox += -lbox -lwavelet2 -lwavelet3 -llinops -liter -llinops -llowrank -ldfwavelet
+MODULES_bart += -lbox -lbox2 -lgrecon -lsense -lnoir -lwavelet2 -liter -llinops -lwavelet3 -llowrank -lnoncart -lcalib -lsimu -lsake -ldfwavelet
 MODULES_sake += -lsake
 MODULES_wave += -liter -lwavelet2 -llinops -lsense
+MODULES_threshold += -llowrank -llinops -lwavelet2 -liter -ldfwavelet
 MODULES_fakeksp += -lsense -llinops
+MODULES_lrmatrix = -llowrank -liter -llinops
+MODULES_estdims = -lnoncart -llinops
 
 -include Makefile.$(NNAME)
 -include Makefile.local
@@ -154,17 +162,26 @@ CFLAGS += -g
 endif
 
 
-
-
 ifeq ($(PARALLEL),1)
-.PHONY: all $(MAKECMDGOALS)
-all $(MAKECMDGOALS):
-	echo Parallel build.
-	make PARALLEL=2 -j $(MAKECMDGOALS)
+MAKEFLAGS += -j
+endif
+
+
+ifeq ($(MAKESTAGE),1)
+.PHONY: doc/commands.txt $(TARGETS) ismrmrd
+default all clean allclean distclean doc/commands.txt doxygen $(TARGETS) ismrmrd:
+	make MAKESTAGE=2 $(MAKECMDGOALS)
 else
 
 
-default: all
+CPPFLAGS += $(DEPFLAG) -I$(srcdir)/
+CFLAGS += -std=c99 -I$(srcdir)/
+CXXFLAGS += -I$(srcdir)/
+
+
+
+
+default: bart doc/commands.txt .gitignore
 
 
 -include $(ALLDEPS)
@@ -181,9 +198,9 @@ ifeq ($(CUDA),1)
 CUDA_H := -I$(cuda.top)/include
 CPPFLAGS += -DUSE_CUDA $(CUDA_H)
 ifeq ($(BUILDTYPE), MacOSX)
-CUDA_L := -L$(cuda.top)/lib -lcufft -lcudart -lcublas -lcuda -m64 -lstdc++
+CUDA_L := -L$(cuda.top)/lib -lcufft -lcudart -lcublas -m64 -lstdc++
 else
-CUDA_L := -L$(cuda.top)/lib64 -lcufft -lcudart -lcublas -lcuda -lstdc++ -Wl,-rpath $(cuda.top)/lib64
+CUDA_L := -L$(cuda.top)/lib64 -lcufft -lcudart -lcublas -lstdc++ -Wl,-rpath $(cuda.top)/lib64
 endif
 else
 CUDA_H :=
@@ -211,21 +228,6 @@ endif
 
 
 
-# GSL
-
-ifeq ($(BUILDTYPE), MacOSX)
-GSL_H := -I$(gsl.top)/include
-GSL_L := -L$(gsl.top)/lib -lgsl -lgslcblas
-else
-GSL_H :=
-GSL_L := -lgsl -lgslcblas
-endif
-
-ifeq ($(GSL),1)
-CPPFLAGS += -DUSE_GSL $(GSL_H) $(BLAS_H)
-endif
-
-
 # BLAS/LAPACK
 
 BLAS_H :=
@@ -245,15 +247,28 @@ endif
 
 
 
+
+CPPFLAGS += $(FFTW_H)
+
+
+
 # png
-PNG_L := -L/Users/ash/miniconda/lib -lpng -lz
+PNG_L := -lpng
+
+ifeq ($(SLINK),1)
+	PNG_L += -lz
+endif
 
 
 # fftw
 
-FFTW_H := -I/Users/ash/miniconda/include/
-FFTW_L := -L/Users/ash/miniconda/lib -lfftw3f_threads -lfftw3f
+FFTW_H := -I$(fftw.top)/include/
+FFTW_L := -L$(fftw.top)/lib -lfftw3f
 
+ifeq ($(FFTWTHREADS),1)
+	FFTW_L += -lfftw3f_threads
+	CPPFLAGS += -DFFTWTHREADS
+endif
 
 # Matlab
 
@@ -293,6 +308,7 @@ include $(DIRS)
 
 # sort BTARGETS after everything is included
 BTARGETS:=$(sort $(BTARGETS))
+YTARGETS:=$(sort $(YTARGETS))
 
 
 
@@ -300,6 +316,19 @@ BTARGETS:=$(sort $(BTARGETS))
 	@echo '# AUTOGENERATED. DO NOT EDIT. (are you looking for .gitignore.main ?)' > .gitignore
 	cat .gitignore.main >> .gitignore
 	@echo $(patsubst %, /%, $(TARGETS)) | tr ' ' '\n' >> .gitignore
+
+
+doc/commands.txt: bart
+	@echo AUTOGENERATED. DO NOT EDIT. > doc/commands.new
+	for cmd in $(YTARGETS) ; do 		\
+		printf "\n\n--%s--\n\n" $$cmd ;	\
+		 ./bart $$cmd -h ;		\
+	done >> doc/commands.new
+	$(root)/rules/update-if-changed.sh doc/commands.new doc/commands.txt
+
+doxygen: makedoc.sh doxyconfig bart
+	 ./makedoc.sh
+
 
 all: .gitignore $(TARGETS)
 
@@ -310,7 +339,12 @@ all: .gitignore $(TARGETS)
 # special targets
 
 
-bart: CPPFLAGS += -DMAIN_LIST="$(BTARGETS:%=%,) ()"
+$(XTARGETS): CPPFLAGS += -DMAIN_LIST="$(XTARGETS:%=%,) ()" -include src/main.h
+
+
+bbox: CPPFLAGS += -DMAIN_LIST="$(BTARGETS:%=%,) ()" -include src/main.h
+
+bart: CPPFLAGS += -DMAIN_LIST="$(YTARGETS:%=%,) ()" -include src/main.h
 
 
 ismrmrd: $(srcdir)/ismrmrd.c -lismrm -lnum -lmisc
@@ -321,12 +355,9 @@ mat2cfl: $(srcdir)/mat2cfl.c -lnum -lmisc
 
 
 
-sense: pics
-	rm -f $@ && $(MYLINK) pics $@
 
-
-$(BTARGETS): bart
-	rm -f $@ && $(MYLINK) bart $@
+$(BTARGETS): bbox
+	rm -f $@ && $(MYLINK) bbox $@
 
 
 # implicit rules
@@ -334,31 +365,58 @@ $(BTARGETS): bart
 %.o: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -I/usr/local/include/ $(FFTW_H) -c -o $@ $<
 
+%.o: %.cc
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+ifeq ($(PARALLEL),1)
+(%): %
+	$(AR) r $@ $%
+else
 (%): %
 	$(AR) r $@ $%
 	rm $%
+endif
+
 
 # we add the rm because intermediate files are not deleted
 # automatically for some reason
+# (but it produces errors for parallel builds for make all)
+
 
 
 .SECONDEXPANSION:
-$(XTARGETS): % : $(srcdir)/%.c $$(MODULES_%) $(MODULES)
-	$(CC) $(LDFLAGS) $(CPPFLAGS) $(CFLAGS) -Dmain_$@=main -o $@ $+ $(FFTW_L) $(CUDA_L) $(BLAS_L) $(GSL_L) $(PNG_L) -lm
+$(ZTARGETS): % : src/main.c $(srcdir)/%.o $$(MODULES_%) $(MODULES)
+	$(CC) $(LDFLAGS) $(CFLAGS) -Dmain_real=main_$@ -o $@ $+ $(FFTW_L) $(CUDA_L) $(BLAS_L) $(PNG_L) -lm
 #	rm $(srcdir)/$@.o
 
 
-.PHONY: clean allclean
 clean:
 	rm -f `find $(srcdir) -name "*.o"`
+	rm -f $(root)/lib/.*.lock
 
 allclean: clean
 	rm -f $(libdir)/*.a ismrmrd $(ALLDEPS)
-	rm -f $(patsubst %, %, $(TARGETS))
+	rm -f bbox $(patsubst %, %, $(TARGETS))
 	rm -f $(srcdir)/misc/version.inc
+	rm -rf doc/dx
+	rm -f doc/commands.txt
+
+distclean: allclean
 
 
+endif	# MAKESTAGE
 
-endif	#PARALLEL
+
+install: bart $(root)/doc/commands.txt
+	install -d $(DESTDIR)/usr/bin/
+	install bart $(DESTDIR)/usr/bin/
+	install -d $(DESTDIR)/usr/share/doc/bart/
+	install $(root)/doc/*.txt $(root)/README $(DESTDIR)/usr/share/doc/bart/
+	install -d $(DESTDIR)/usr/lib/bart/commands/
+
+
+# generate release tar balls (identical to github)
+%.tar.gz:
+	git archive --prefix=bart-$(patsubst bart-%.tar.gz,%,$@)/ -o $@ v$(patsubst bart-%.tar.gz,%,$@)
 
 

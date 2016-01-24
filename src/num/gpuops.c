@@ -1,10 +1,12 @@
 /* Copyright 2013-2015. The Regents of the University of California.
+ * Copyright 2014. Joseph Y Cheng.
  * All rights reserved. Use of this source code is governed by
  * a BSD-style license which can be found in the LICENSE file.
  *
  * Authors: 
  * 2012-2015	Martin Uecker <uecker@eecs.berkeley.edu>
  * 2014 	Joseph Y Cheng <jycheng@stanford.edu>
+ * 2015		Jonathan Tamir <jtamir@eecs.berkeley.edu>
  *
  * 
  * CUDA support functions. The file exports gpu_ops of type struct vec_ops
@@ -246,7 +248,7 @@ static struct cuda_mem_s* find_free(size_t size)
 
 static void insert(const void* ptr, size_t len, bool device)
 {
-	struct cuda_mem_s* nptr = xmalloc(sizeof(struct cuda_mem_s));
+	PTR_ALLOC(struct cuda_mem_s, nptr);
 	nptr->ptr = ptr;
 	nptr->len = len;
 	nptr->device = device;
@@ -500,6 +502,7 @@ const struct vec_ops gpu_ops = {
 	.sqrt = cuda_sqrt,
 
 	.le = cuda_le,
+	.ge = cuda_ge,
 
 	.zmul = cuda_zmul,
 	.zdiv = cuda_zdiv,

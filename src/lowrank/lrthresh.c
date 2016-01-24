@@ -1,4 +1,5 @@
 /* Copyright 2015. The Regents of the University of California.
+ * Copyright 2015. Tao Zhang and Joseph Cheng.
  * All rights reserved. Use of this source code is governed by
  * a educational/research license which can be found in the
  * LICENSE file.
@@ -96,7 +97,7 @@ const struct operator_p_s* lrthresh_create(const long dims_lev[DIMS], bool rands
  */
 static struct lrthresh_data_s* lrthresh_create_data(const long dims_decom[DIMS], bool randshift, unsigned long mflags, const long blkdims[MAX_LEV][DIMS], float lambda, bool noise, int remove_mean, bool use_gpu)
 {
-	struct lrthresh_data_s* data = xmalloc(sizeof(struct lrthresh_data_s));
+	PTR_ALLOC(struct lrthresh_data_s, data);
 
 	data->randshift = randshift;
 	data->mflags = mflags;

@@ -13,11 +13,13 @@
 #include <stdlib.h>
 #include <fenv.h>
 #include <assert.h>
+#include <sys/resource.h>
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
+#include "misc/debug.h"
 #include "num/fft.h"
 
 #ifdef USE_CUDA
@@ -37,6 +39,14 @@ void num_init(void)
 //	feenableexcept(FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW|FE_UNDERFLOW);
 #endif
 
+#if 0
+	// set stack limit
+	if (-1 == setrlimit(RLIMIT_STACK, &(struct rlimit){ 500000000, 500000000 }))
+		debug_printf(DP_WARN, "error setting stack size\n");
+
+	// FIXME: should also set openmp stack size
+#endif
+
 #ifdef _OPENMP
 	int p = omp_get_num_procs();
 
@@ -44,9 +54,11 @@ void num_init(void)
 		omp_set_num_threads(p);
 
 	p = omp_get_max_threads();
-	fft_set_num_threads(p);
 #else
-	fft_set_num_threads(2);
+	int p = 2;
+#endif
+#ifdef FFTWTHREADS
+	fft_set_num_threads(p);
 #endif
 }
 
@@ -96,7 +108,9 @@ void num_set_num_threads(int n)
 #ifdef _OPENMP
 	omp_set_num_threads(n);
 #endif
+#ifdef FFTWTHREADS
 	fft_set_num_threads(n);
+#endif
 }
 
 

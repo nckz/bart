@@ -1,9 +1,10 @@
 /* Copyright 2015. The Regents of the University of California.
- * All rights reserved. Use of this source code is governed by 
+ * Copyright 2015-2016. Martin Uecker.
+ * All rights reserved. Use of this source code is governed by
  * a BSD-style license which can be found in the LICENSE file.
  * 
  * Authors:
- * 2014 Martin Uecker <uecker@eecs.berkeley.edu>
+ * 2014-2016 Martin Uecker <martin.uecker@med.uni-goettingen.de>
  */
 
 #include <stdlib.h>
@@ -11,15 +12,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <libgen.h>
+#include <unistd.h>
+#include <errno.h>
 
 #include "misc/misc.h"
 #include "misc/cppmap.h"
 
-
-#define DECLMAIN(x) \
-extern int main_ ## x(int argc, char* argv[]);
-MAP(DECLMAIN, MAIN_LIST)
-#undef	DECLMAIN
+#include "main.h"
 
 struct {
 
@@ -49,7 +48,7 @@ static void usage(void)
 	printf("\n");
 }
 
-int main(int argc, char* argv[])
+int main_bart(int argc, char* argv[])
 {
 	char* bn = basename(argv[0]);
 
@@ -61,7 +60,41 @@ int main(int argc, char* argv[])
 			exit(1);
 		}
 
-		return main(argc - 1, argv + 1);
+		const char* tpath[3] = {
+
+			getenv("TOOLBOX_PATH"),
+			"/usr/lib/bart/commands/",
+			"/usr/local/lib/bart/commands/",
+		};
+
+		for (unsigned int i = 0; i < ARRAY_SIZE(tpath); i++) {
+
+			if (NULL == tpath[i])
+				continue;
+
+			size_t len = strlen(tpath[i]) + strlen(argv[1]) + 2;
+
+			char cmd[len];
+			size_t r = snprintf(cmd, len, "%s/%s", tpath[i], argv[1]);
+			assert(r < len);
+
+			if (-1 == execv(cmd, argv + 1)) {
+
+				// only if it doesn't exist - try builtin
+
+				if (ENOENT != errno) {
+
+					perror("Executing bart command failed");
+					exit(1);
+				}
+
+			} else {
+
+				assert(0);
+			}
+		}
+
+		return main_bart(argc - 1, argv + 1);
 	}
 
 	for (int i = 0; NULL != dispatch_table[i].name; i++) {

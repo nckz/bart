@@ -1,24 +1,20 @@
 /* Copyright 2013-2015. The Regents of the University of California.
- * All rights reserved. Use of this source code is governed by 
+ * Copyright 2015. Martin Uecker.
+ * All rights reserved. Use of this source code is governed by
  * a BSD-style license which can be found in the LICENSE file.
  *
  * Authors:
- * 2012-2015 Martin Uecker <uecker@eecs.berkeley.edu>
- * 2014 Frank Ong <frankong@berkeley.edu>
+ * 2012-2015 Martin Uecker <martin.uecker@med.uni-goettingen.de>
+ * 2014-2015 Frank Ong <frankong@berkeley.edu>
  * 2014-2015 Jonathan Tamir <jtamir@eecs.berkeley.edu>
  *
  */
 
-#define _GNU_SOURCE
-#include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
 #include <complex.h>
 #include <stdio.h>
 #include <math.h>
-#include <unistd.h>
-#include <string.h>
-#include <libgen.h>
 
 #include "num/multind.h"
 #include "num/flpmath.h"
@@ -35,6 +31,7 @@
 #include "linops/linop.h"
 #include "linops/someops.h"
 #include "linops/grad.h"
+#include "linops/sum.h"
 
 #include "iter/iter.h"
 #include "iter/iter2.h"
@@ -55,34 +52,13 @@
 #include "misc/utils.h"
 #include "misc/mmio.h"
 #include "misc/misc.h"
+#include "misc/opts.h"
 
 
 #define NUM_REGS 10
 
-static void usage(const char* name, FILE* fd)
-{
-	fprintf(fd, "Usage: %s [-l1/-l2] [-r lambda] [-t <trajectory>] <kspace> <sensitivities> <output>\n", name);
-}
-
-static void help(void)
-{
-	printf( "\n"
-		"Parallel-imaging compressed-sensing reconstruction.\n"
-		"\n"
-		"-l1/-l2\t\ttoggle l1-wavelet or l2 regularization.\n"
-		"-r lambda\tregularization parameter\n"
-		"-R <T>:A:B:C\tgeneralized regularization options (-Rh for help)\n"
-		"-c\t\treal-value constraint\n"
-		"-s step\t\titeration stepsize\n"
-		"-i maxiter\tnumber of iterations\n"
-		"-t trajectory\tk-space trajectory\n"
-#ifdef BERKELEY_SVN
-		"-n \t\tdisable random wavelet cycle spinning\n"
-		"-g \t\tuse GPU\n"
-		"-p pat\t\tpattern or weights\n"
-#endif
-	);
-}
+static const char usage_str[] = "<kspace> <sensitivities> <output>";
+static const char help_str[] = "Parallel-imaging compressed-sensing reconstruction.";
 
 static void help_reg(void)
 {
@@ -95,9 +71,9 @@ static void help_reg(void)
 		"-R I:B:C  \tl1-norm in image domain\n"
 		"-R W:A:B:C\tl1-wavelet\n"
 		"-R T:A:B:C\ttotal variation\n"
-//		"-R L:A:B:C\tLLR with rows from A and cols from B\n"
-		"\nExample:\n"
 		"-R T:7:0:.01\t3D isotropic total variation with 0.01 regularization.\n"
+		"-R L:7:7:.02\tLocally low rank with spatial decimation and 0.02 regularization.\n"
+		"-R M:7:7:.03\tMulti-scale low rank with spatial decimation and 0.03 regularization.\n"
 	);
 }
 
@@ -123,7 +99,7 @@ const struct linop_s* sense_nc_init(const long max_dims[DIMS], const long map_di
 
 struct reg_s {
 
-	enum { L1WAV, TV, LLR, L1IMG, L2IMG } xform;
+	enum { L1WAV, TV, LLR, MLR, L1IMG, L2IMG } xform;
 
 	unsigned int xflags;
 	unsigned int jflags;
@@ -131,6 +107,123 @@ struct reg_s {
 	float lambda;
 };
 
+enum algo_t { CG, IST, FISTA, ADMM };
+
+struct opt_reg_s {
+
+	float lambda;
+	enum algo_t algo;
+	struct reg_s regs[NUM_REGS];
+	unsigned int r;
+};
+
+static bool opt_reg(void* ptr, char c, const char* optarg)
+{
+	struct opt_reg_s* p = ptr;
+	struct reg_s* regs = p->regs;
+	const int r = p->r;
+	const float lambda = p->lambda;
+
+	assert(r < NUM_REGS);
+
+	char rt[5];
+
+	switch (c) {
+
+	case 'R': {
+
+		// first get transform type
+		int ret = sscanf(optarg, "%4[^:]", rt);
+		assert(1 == ret);
+
+		// next switch based on transform type
+		if (strcmp(rt, "W") == 0) {
+
+			regs[r].xform = L1WAV;
+			int ret = sscanf(optarg, "%*[^:]:%d:%d:%f", &regs[r].xflags, &regs[r].jflags, &regs[r].lambda);
+			assert(3 == ret);
+		}
+		else if (strcmp(rt, "L") == 0) {
+
+			regs[r].xform = LLR;
+			int ret = sscanf(optarg, "%*[^:]:%d:%d:%f", &regs[r].xflags, &regs[r].jflags, &regs[r].lambda);
+			assert(3 == ret);
+		}
+		else if (strcmp(rt, "M") == 0) {
+
+			regs[r].xform = regs[0].xform;
+			regs[r].xflags = regs[0].xflags;
+			regs[r].jflags = regs[0].jflags;
+			regs[r].lambda = regs[0].lambda;
+
+			regs[0].xform = MLR;
+			int ret = sscanf(optarg, "%*[^:]:%d:%d:%f", &regs[0].xflags, &regs[0].jflags, &regs[0].lambda);
+			assert(3 == ret);
+		}
+		else if (strcmp(rt, "T") == 0) {
+
+			regs[r].xform = TV;
+			int ret = sscanf(optarg, "%*[^:]:%d:%d:%f", &regs[r].xflags, &regs[r].jflags, &regs[r].lambda);
+			assert(3 == ret);
+			p->algo = ADMM;
+		}
+		else if (strcmp(rt, "I") == 0) {
+
+			regs[r].xform = L1IMG;
+			int ret = sscanf(optarg, "%*[^:]:%d:%f", &regs[r].jflags, &regs[r].lambda);
+			assert(2 == ret);
+			regs[r].xflags = 0u;
+		}
+		else if (strcmp(rt, "Q") == 0) {
+
+			regs[r].xform = L2IMG;
+			int ret = sscanf(optarg, "%*[^:]:%f", &regs[r].lambda);
+			assert(1 == ret);
+			regs[r].xflags = 0u;
+			regs[r].jflags = 0u;
+		}
+		else if (strcmp(rt, "h") == 0) {
+
+			help_reg();
+			exit(0);
+		}
+		else {
+
+			error("Unrecognized regularization type: \"%s\" (-Rh for help).\n", rt);
+		}
+
+		p->r++;
+		break;
+	}
+
+	case 'l':
+		assert(r < NUM_REGS);
+		regs[r].lambda = lambda;
+		regs[r].xflags = 0u;
+		regs[r].jflags = 0u;
+
+		if (0 == strcmp("1", optarg)) {
+
+			regs[r].xform = L1WAV;
+			regs[r].xflags = 7u;
+
+		} else
+		if (0 == strcmp("2", optarg)) {
+
+			regs[r].xform = L2IMG;
+
+		} else {
+
+			error("Unknown regularization type.\n");
+		}
+
+		p->lambda = -1.;
+		p->r++;
+		break;
+	}
+
+	return false;
+}
 
 int main_pics(int argc, char* argv[])
 {
@@ -139,14 +232,12 @@ int main_pics(int argc, char* argv[])
 	struct sense_conf conf = sense_defaults;
 
 
-	enum { CG, IST, FISTA, ADMM } algo = CG;
 
 	bool use_gpu = false;
 
 	bool randshift = true;
 	unsigned int maxiter = 30;
-	float step = 0.95;
-	float lambda = -1.;
+	float step = -1.;
 
 	// Start time count
 
@@ -159,216 +250,68 @@ int main_pics(int argc, char* argv[])
 	float restrict_fov = -1.;
 	const char* pat_file = NULL;
 	const char* traj_file = NULL;
-	const char* image_truth_file = NULL;
-	bool im_truth = false;
 	bool scale_im = false;
 	bool eigen = false;
+	float scaling = 0.;
+
+	unsigned int llr_blk = 8;
+
+	const char* image_truth_file = NULL;
+	bool im_truth = false;
+
+	const char* image_start_file = NULL;
+	bool warm_start = false;
 
 	bool hogwild = false;
 	bool fast = false;
 	float admm_rho = iter_admm_defaults.rho;
 	unsigned int admm_maxitercg = iter_admm_defaults.maxitercg;
 
-	struct reg_s regs[NUM_REGS];
-	unsigned int r = 0;
+	struct opt_reg_s ropts;
+	ropts.r = 0;
+	ropts.algo = CG;
+	ropts.lambda = -1.;
 
-	if (0 == strcmp(basename(argv[0]), "sense"))
-		debug_printf(DP_WARN, "The \'sense\' command is deprecated. Use \'pics\' instead.\n");
 
-	int c;
-	while (-1 != (c = getopt(argc, argv, "Fq:l:r:s:i:u:o:O:f:t:cT:Imngehp:Sd:R:HC:"))) {
+	const struct opt_s opts[] = {
 
-		char rt[5];
+		{ 'l', true, opt_reg, &ropts, "1/-l2\t\ttoggle l1-wavelet or l2 regularization." },
+		OPT_FLOAT('r', &ropts.lambda, "lambda", "regularization parameter"),
+		{ 'R', true, opt_reg, &ropts, " <T>:A:B:C\tgeneralized regularization options (-Rh for help)" },
+		OPT_SET('c', &conf.rvc, "real-value constraint"),
+		OPT_FLOAT('s', &step, "step", "iteration stepsize"),
+		OPT_UINT('i', &maxiter, "iter", "max. number of iterations"),
+		OPT_STRING('t', &traj_file, "file", "k-space trajectory"),
+		OPT_CLEAR('n', &randshift, "disable random wavelet cycle spinning"),
+		OPT_SET('g', &use_gpu, "use GPU"),
+		OPT_STRING('p', &pat_file, "file", "pattern or weights"),
+		OPT_SELECT('I', enum algo_t, &ropts.algo, IST, "(select IST)"),
+		OPT_UINT('b', &llr_blk, "blksize", "(lowrank)"),
+		OPT_SET('e', &eigen, "set stepsize based on max. eigenvalue"),
+		OPT_SET('H', &hogwild, "(hogwild)"),
+		OPT_SET('F', &fast, "(fast)"),
+		OPT_STRING('T', &image_truth_file, "file", "(truth file)"),
+		OPT_STRING('W', &image_start_file, "file", "(warm start)"),
+		OPT_INT('d', &debug_level, "level", "debug level"),
+		OPT_INT('O', &conf.rwiter, "rwiter", "(reweighting)"),
+		OPT_FLOAT('o', &conf.gamma, "gamma", "(reweighting)"),
+		OPT_FLOAT('u', &admm_rho, "rho", "ADMM rho"),
+		OPT_UINT('C', &admm_maxitercg, "iter", "ADMM max. CG iterations"),
+		OPT_FLOAT('q', &conf.cclambda, "cclambda", "(cclambda)"),
+		OPT_FLOAT('f', &restrict_fov, "rfov", "restrict FOV"),
+		OPT_SELECT('m', enum algo_t, &ropts.algo, ADMM, "(select ADMM)"),
+		OPT_FLOAT('w', &scaling, "val", "scaling"),
+		OPT_SET('S', &scale_im, "Re-scale the image after reconstruction"),
+	};
 
-		switch(c) {
+	cmdline(&argc, argv, 3, 3, usage_str, help_str, ARRAY_SIZE(opts), opts);
 
-		case 'I':
-			algo = IST;
-			break;
+	if (NULL != image_truth_file)
+		im_truth = true;
 
-		case 'R':
-			assert(r < NUM_REGS);
+	if (NULL != image_start_file)
+		warm_start = true;
 
-			// first get transform type
-			int ret = sscanf(optarg, "%4[^:]", rt);
-			assert(1 == ret);
-
-			// next switch based on transform type
-			if (strcmp(rt, "W") == 0) {
-
-				regs[r].xform = L1WAV;
-				int ret = sscanf(optarg, "%*[^:]:%d:%d:%f", &regs[r].xflags, &regs[r].jflags, &regs[r].lambda);
-				assert(3 == ret);
-			}
-			else if (strcmp(rt, "L") == 0) {
-
-				regs[r].xform = LLR;
-				int ret = sscanf(optarg, "%*[^:]:%d:%d:%f", &regs[r].xflags, &regs[r].jflags, &regs[r].lambda);
-				assert(3 == ret);
-			}
-			else if (strcmp(rt, "T") == 0) {
-
-				regs[r].xform = TV;
-				int ret = sscanf(optarg, "%*[^:]:%d:%d:%f", &regs[r].xflags, &regs[r].jflags, &regs[r].lambda);
-				assert(3 == ret);
-				algo = ADMM;
-			}
-			else if (strcmp(rt, "I") == 0) {
-
-				regs[r].xform = L1IMG;
-				int ret = sscanf(optarg, "%*[^:]:%d:%f", &regs[r].jflags, &regs[r].lambda);
-				assert(2 == ret);
-				regs[r].xflags = 0u;
-			}
-			else if (strcmp(rt, "Q") == 0) {
-
-				regs[r].xform = L2IMG;
-				int ret = sscanf(optarg, "%*[^:]:%f", &regs[r].lambda);
-				assert(1 == ret);
-				regs[r].xflags = 0u;
-				regs[r].jflags = 0u;
-			}
-			else if (strcmp(rt, "h") == 0) {
-
-				help_reg();
-				exit(0);
-			}
-			else {
-
-				error("Unrecognized regularization type: \"%s\" (-Rh for help).\n", rt);
-			}
-
-			r++;
-			break;
-
-		case 'e':
-			eigen = true;
-			break;
-
-		case 'H':
-			hogwild = true;
-			break;
-
-		case 'F':
-			fast = true;
-			break;
-
-		case 'T':
-			im_truth = true;
-			image_truth_file = strdup(optarg);
-			assert(NULL != image_truth_file);
-			break;
-
-		case 'd':
-			debug_level = atoi(optarg);
-			break;
-
-		case 'r':
-			lambda = atof(optarg);
-			break;
-
-		case 'O':
-			conf.rwiter = atoi(optarg);
-			break;
-
-		case 'o':
-			conf.gamma = atof(optarg);
-			break;
-
-		case 's':
-			step = atof(optarg);
-			break;
-
-		case 'i':
-			maxiter = atoi(optarg);
-			break;
-
-		case 'u':
-			admm_rho = atof(optarg);
-			break;
-
-		case 'C':
-			admm_maxitercg = atoi(optarg);
-			break;
-
-		case 'l':
-			assert(r < NUM_REGS);
-			regs[r].lambda = lambda;
-			regs[r].xflags = 0u;
-			regs[r].jflags = 0u;
-
-			if (0 == strcmp("1", optarg)) {
-
-				regs[r].xform = L1WAV;
-				regs[r].xflags = 7u;
-
-			} else
-			if (0 == strcmp("2", optarg)) {
-
-				regs[r].xform = L2IMG;
-
-			} else {
-
-				usage(argv[0], stderr);
-				exit(1);
-			}
-
-			lambda = -1.;
-			r++;
-			break;
-
-		case 'q':
-			conf.cclambda = atof(optarg);
-			break;
-
-		case 'c':
-			conf.rvc = true;
-			break;
-
-		case 'f':
-			restrict_fov = atof(optarg);
-			break;
-
-		case 'm':
-			algo = ADMM;
-			break;
-
-		case 'g':
-			use_gpu = true;
-			break;
-
-		case 'p':
-			pat_file = strdup(optarg);
-			break;
-
-		case 't':
-			traj_file = strdup(optarg);
-			break;
-
-		case 'S':
-			scale_im = true;
-			break;
-
-		case 'n':
-			randshift = false;
-			break;
-
-		case 'h':
-			usage(argv[0], stdout);
-			help();
-			exit(0);
-
-		default:
-			usage(argv[0], stderr);
-			exit(1);
-		}
-	}
-
-	if (argc - optind != 3) {
-
-		usage(argv[0], stderr);
-		exit(1);
-	}
 
 	long max_dims[DIMS];
 	long map_dims[DIMS];
@@ -382,8 +325,8 @@ int main_pics(int argc, char* argv[])
 
 	// load kspace and maps and get dimensions
 
-	complex float* kspace = load_cfl(argv[optind + 0], DIMS, ksp_dims);
-	complex float* maps = load_cfl(argv[optind + 1], DIMS, map_dims);
+	complex float* kspace = load_cfl(argv[1], DIMS, ksp_dims);
+	complex float* maps = load_cfl(argv[2], DIMS, map_dims);
 
 
 	complex float* traj = NULL;
@@ -486,34 +429,29 @@ int main_pics(int argc, char* argv[])
 
 	// apply scaling
 
-	float scaling = 0.;
+	if (scaling == 0.) {
 
-	if (NULL == traj_file) {
+		if (NULL == traj_file) {
 
-		scaling = estimate_scaling(ksp_dims, NULL, kspace);
+			scaling = estimate_scaling(ksp_dims, NULL, kspace);
 
-	} else {
+		} else {
 
-		complex float* adj = md_alloc(DIMS, img_dims, CFL_SIZE);
+			complex float* adj = md_alloc(DIMS, img_dims, CFL_SIZE);
 
-		linop_adjoint(forward_op, DIMS, img_dims, adj, DIMS, ksp_dims, kspace);
-		scaling = estimate_scaling_norm(1., md_calc_size(DIMS, img_dims), adj, false);
+			linop_adjoint(forward_op, DIMS, img_dims, adj, DIMS, ksp_dims, kspace);
+			scaling = estimate_scaling_norm(1., md_calc_size(DIMS, img_dims), adj, false);
 
-		md_free(adj);
+			md_free(adj);
+		}
 	}
+	else
+		debug_printf(DP_DEBUG1, "Scaling: %f\n", scaling);
 
 	if (scaling != 0.)
 		md_zsmul(DIMS, ksp_dims, kspace, kspace, 1. / scaling);
 
-	if (eigen) {
-
-		double maxeigen = estimate_maxeigenval(forward_op->normal);
-
-		debug_printf(DP_INFO, "Maximum eigenvalue: %.2e\n", maxeigen);
-
-		step /= maxeigen;
-	}
-
+	float lambda = ropts.lambda;
 
 	if (-1. == lambda)
 		lambda = 0.;
@@ -521,20 +459,27 @@ int main_pics(int argc, char* argv[])
 	// if no penalities specified but regularization
 	// parameter is given, add a l2 penalty
 
-	if ((0 == r) && (lambda >= 0.)) {
+	struct reg_s* regs = ropts.regs;
+	enum algo_t algo = ropts.algo;
+
+	if ((0 == ropts.r) && (lambda >= 0.)) {
 
 		regs[0].xform = L2IMG;
 		regs[0].xflags = 0u;
 		regs[0].jflags = 0u;
 		regs[0].lambda = lambda;
-		r = 1;
+		ropts.r = 1;
 	}
+
 
 
 	// initialize thresh_op
 	const struct operator_p_s* thresh_ops[NUM_REGS] = { NULL };
 	const struct linop_s* trafos[NUM_REGS] = { NULL };
-	int nr_penalties = r;
+	int nr_penalties = ropts.r;
+        long blkdims[MAX_LEV][DIMS];
+        int levels;
+
 
 	for (int nr = 0; nr < nr_penalties; nr++) {
 
@@ -589,13 +534,8 @@ int main_pics(int argc, char* argv[])
 		case LLR:
 			debug_printf(DP_INFO, "lowrank regularization: %f\n", regs[nr].lambda);
 
-			if (0 != regs[nr].jflags)
-				debug_printf(DP_WARN, "specifying col dims not currently supported.\n");
-
-			long blkdims[1][DIMS];
-
-			// add a very basic lowrank penalty
-			int levels = llr_blkdims(blkdims, regs[nr].xflags, img_dims, 6);
+			// add locally lowrank penalty
+			levels = llr_blkdims(blkdims, regs[nr].jflags, img_dims, llr_blk);
 
 			assert(1 == levels);
 			img_dims[LEVEL_DIM] = levels;
@@ -611,6 +551,29 @@ int main_pics(int argc, char* argv[])
 
 			trafos[nr] = linop_identity_create(DIMS, img_dims);
 			thresh_ops[nr] = lrthresh_create(img_dims, randshift, regs[nr].xflags, (const long (*)[DIMS])blkdims, regs[nr].lambda, false, remove_mean, use_gpu);
+			break;
+       
+		case MLR:
+			debug_printf(DP_INFO, "multi-scale lowrank regularization: %f\n", regs[nr].lambda);
+
+                        levels = multilr_blkdims(blkdims, regs[nr].jflags, img_dims, 8, 1);
+
+			img_dims[LEVEL_DIM] = levels;
+                        max_dims[LEVEL_DIM] = levels;
+
+			for(int l = 0; l < levels; l++)
+				blkdims[l][MAPS_DIM] = 1;
+
+			trafos[nr] = linop_identity_create(DIMS, img_dims);
+			thresh_ops[nr] = lrthresh_create(img_dims, randshift, regs[nr].xflags, (const long (*)[DIMS])blkdims, regs[nr].lambda, false, 0, use_gpu);
+
+                        const struct linop_s* decom_op = sum_create( img_dims, use_gpu );
+                        const struct linop_s* tmp_op = forward_op;
+                        forward_op = linop_chain(decom_op, forward_op);
+                        
+                        linop_free(decom_op);
+                        linop_free(tmp_op);
+
 			break;
 
 		case L1IMG:
@@ -632,7 +595,7 @@ int main_pics(int argc, char* argv[])
 
 
 
-	complex float* image = create_cfl(argv[optind + 2], DIMS, img_dims);
+	complex float* image = create_cfl(argv[3], DIMS, img_dims);
 	md_clear(DIMS, img_dims, image, CFL_SIZE);
 
 
@@ -643,6 +606,24 @@ int main_pics(int argc, char* argv[])
 
 		image_truth = load_cfl(image_truth_file, DIMS, img_truth_dims);
 		//md_zsmul(DIMS, img_dims, image_truth, image_truth, 1. / scaling);
+	}
+
+	long img_start_dims[DIMS];
+	complex float* image_start = NULL;
+
+	if (warm_start) { 
+
+		debug_printf(DP_DEBUG1, "Warm start: %s\n", image_start_file);
+		image_start = load_cfl(image_start_file, DIMS, img_start_dims);
+		assert(md_check_compat(DIMS, 0u, img_start_dims, img_dims));
+		md_copy(DIMS, img_dims, image, image_start, CFL_SIZE);
+
+		free((void*)image_start_file);
+		unmap_cfl(DIMS, img_dims, image_start);
+
+		// if rescaling at the end, assume the input has also been rescaled
+		if (scale_im && scaling != 0.)
+			md_zsmul(DIMS, img_dims, image, image, 1. /  scaling);
 	}
 
 
@@ -663,6 +644,33 @@ int main_pics(int argc, char* argv[])
 
 	if (nr_penalties > 1)
 		algo = ADMM;
+
+	if ((IST == algo) || (FISTA == algo)) {
+
+		// For non-Cartesian trajectories, the default
+		// will usually not work. TODO: The same is true
+		// for sensitivities which are not normalized, but
+		// we do not detect this case.
+
+		if ((NULL != traj_file) && (-1. == step) && !eigen)
+			debug_printf(DP_WARN, "No step size specified.\n");
+
+		if (-1. == step)
+			step = 0.95;
+	}
+
+	if ((CG == algo) || (ADMM == algo))
+		if (-1. != step)
+			debug_printf(DP_INFO, "Stepsize ignored.\n");
+
+	if (eigen) {
+
+		double maxeigen = estimate_maxeigenval(forward_op->normal);
+
+		debug_printf(DP_INFO, "Maximum eigenvalue: %.2e\n", maxeigen);
+
+		step /= maxeigen;
+	}
 
 	switch (algo) {
 
