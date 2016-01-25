@@ -53,7 +53,7 @@ class ExternalNode(gpi.NodeAPI):
 
     def compute(self):
         # load up arguments list
-        args = [base_path+'/poisson']
+        args = [base_path+'/bart poisson']
         args += ['-Y {}'.format(self.getVal('y size'))]
         args += ['-Z {}'.format(self.getVal('z size'))]
         args += ['-y {}'.format(self.getVal('y accel'))]

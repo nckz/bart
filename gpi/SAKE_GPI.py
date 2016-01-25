@@ -17,10 +17,10 @@ import bart.python.cfl as cfl
 
 class ExternalNode(gpi.NodeAPI):
     '''Usage: sake [-i iterations] [-s rel. subspace] <kspace> <output>
-    
+
     Use SAKE algorithm to recover a full k-space from undersampled
     data using low-rank matrix completion.
-    
+
     -i  number of iterations
     -s  rel. size of the signal subspace
     '''
@@ -44,7 +44,7 @@ class ExternalNode(gpi.NodeAPI):
         kspace = self.getData('kspace')
 
         # load up arguments list
-        args = [base_path+'/sake']
+        args = [base_path+'/bart sake']
         args += [str(i)]
         args += [str(s)]
 

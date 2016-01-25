@@ -41,7 +41,7 @@ class ExternalNode(gpi.NodeAPI):
         kspace = self.getData('kspace')
 
         # load up arguments list
-        args = [base_path+'/nlinv']
+        args = [base_path+'/bart nlinv']
 
         if self.getVal('regularization') == 0:
             args += ['-l1']

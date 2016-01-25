@@ -61,7 +61,7 @@ class ExternalNode(gpi.NodeAPI):
         kspace = self.getData('kspace')
 
         # load up arguments list
-        args = [base_path+'/ecalib']
+        args = [base_path+'/bart ecalib']
         args += ['-t '+str(t)]
         args += ['-c '+str(c)]
         args += ['-k '+str(k)]

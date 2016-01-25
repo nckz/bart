@@ -55,7 +55,7 @@ class ExternalNode(gpi.NodeAPI):
         traj = self.getData('traj')
 
         # load up arguments list
-        args = [base_path+'/nufft']
+        args = [base_path+'/bart nufft']
 
         args += ['-l '+str(lmbda)]
         if adjoint:

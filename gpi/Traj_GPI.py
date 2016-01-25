@@ -56,7 +56,7 @@ class ExternalNode(gpi.NodeAPI):
         d = self.getVal('double base angle')
 
         # load up arguments list
-        args = [base_path+'/traj']
+        args = [base_path+'/bart traj']
         args += ['-x '+str(x)]
         args += ['-y '+str(y)]
         args += ['-a '+str(a)]

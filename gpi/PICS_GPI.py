@@ -63,7 +63,7 @@ class ExternalNode(gpi.NodeAPI):
         lamb = self.getVal('lamb')
 
         # load up arguments list
-        args = [base_path+'/pics']
+        args = [base_path+'/bart pics']
 
         if reg == 0:
             args += ['-l1']

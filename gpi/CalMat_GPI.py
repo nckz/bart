@@ -17,9 +17,9 @@ import bart.python.cfl as cfl
 
 class ExternalNode(gpi.NodeAPI):
     '''Usage: calmat [-k kernel_size] [-r cal_size] <kspace> <calibration matrix>
-    
+
     Compute calibration matrix.
-    
+
     -k ksize    kernel size
     -r cal_size Limits the size of the calibration region.
     '''
@@ -43,7 +43,7 @@ class ExternalNode(gpi.NodeAPI):
         kspace = self.getData('kspace')
 
         # load up arguments list
-        args = [base_path+'/calmat']
+        args = [base_path+'/bart calmat']
         args += ['-r '+str(r)]
         args += ['-k '+str(k)]
 

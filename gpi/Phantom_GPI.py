@@ -37,7 +37,7 @@ class ExternalNode(gpi.NodeAPI):
 
     def compute(self):
         # load up arguments list
-        args = [base_path+'/phantom']
+        args = [base_path+'/bart phantom']
         args += ['-s {}'.format(self.getVal('num_coils'))]
 
         if self.getVal('kspace'):

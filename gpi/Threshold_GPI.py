@@ -42,7 +42,7 @@ class ExternalNode(gpi.NodeAPI):
         inp = self.getData('input')
 
         # load up arguments list
-        args = [base_path+'/threshold']
+        args = [base_path+'/bart threshold']
         args += ['-j '+str(j)]
         args += [str(lamda)]
 

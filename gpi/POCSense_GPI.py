@@ -43,7 +43,7 @@ class ExternalNode(gpi.NodeAPI):
         inmaps = self.getData('sensitivities')
 
         # load up arguments list
-        args = [base_path+'/pocsense']
+        args = [base_path+'/bart pocsense']
         if reg == 0:
             args += ['-l1']
         else:

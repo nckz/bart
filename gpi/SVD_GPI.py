@@ -17,7 +17,7 @@ import bart.python.cfl as cfl
 
 class ExternalNode(gpi.NodeAPI):
     '''Usage svd: [-e] <input> <U> <S> <VH>
-    
+
     Compute singular-value-decomposition (SVD).
     '''
 
@@ -39,7 +39,7 @@ class ExternalNode(gpi.NodeAPI):
         inp = self.getData('input')
 
         # load up arguments list
-        args = [base_path+'/svd']
+        args = [base_path+'/bart svd']
         if e:
             args += ['-e']
 

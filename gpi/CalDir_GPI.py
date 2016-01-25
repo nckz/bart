@@ -40,7 +40,7 @@ class ExternalNode(gpi.NodeAPI):
         kspace = self.getData('input')
 
         # load up arguments list
-        args = [base_path+'/caldir']
+        args = [base_path+'/bart caldir']
         args += [str(r)]
 
         # setup file for passing data to external command

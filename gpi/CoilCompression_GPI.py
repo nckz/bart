@@ -17,9 +17,9 @@ import bart.python.cfl as cfl
 
 class ExternalNode(gpi.NodeAPI):
     '''Usage: cc [-A] [-r cal_size] [-P num_coeffs] <kspace> <coeff>|<proj_kspace>
-    
+
     Performs coil compression.
-    
+
     -P N    perform compression to N virtual channels
     -r S    size of calibration region
     -A  use all data to compute coefficients
@@ -52,7 +52,7 @@ class ExternalNode(gpi.NodeAPI):
         coeff = self.getData('coeff')
 
         # load up arguments list
-        args = [base_path+'/cc']
+        args = [base_path+'/bart cc']
         args += ['-P '+str(p)]
         args += ['-r '+str(r)]
         if a:

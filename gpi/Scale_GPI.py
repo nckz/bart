@@ -37,7 +37,7 @@ class ExternalNode(gpi.NodeAPI):
         indata = self.getData('in')
 
         # load up arguments list
-        args = [base_path+'/scale']
+        args = [base_path+'/bart scale']
         args += [str(f)]
 
         # setup file for passing data to external command

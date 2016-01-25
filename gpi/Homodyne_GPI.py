@@ -37,7 +37,7 @@ class ExternalNode(gpi.NodeAPI):
         kspace = self.getData('kspace')
 
         # load up arguments list
-        args = [base_path+'/homodyne']
+        args = [base_path+'/bart homodyne']
 
         args += [str(self.getVal('dim'))]
         args += [str(self.getVal('fraction'))]
