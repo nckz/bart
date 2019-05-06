@@ -55,7 +55,7 @@ class ExternalNode(gpi.NodeAPI):
             kspace = self.getData('input')
 
             # load up arguments list
-            args = [base_path+'/cdf97']
+            args = [base_path+'/bart cdf97']
 
             if direction != 0:
                 args += ['-i']
